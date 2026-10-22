@@ -26,6 +26,12 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+html[data-window-kind='quick-add'],
+html[data-window-kind='quick-add'] body,
+html[data-window-kind='quick-add'] #root {
+    background: transparent;
+}
+
 button,
 input,
 textarea,
@@ -756,8 +762,9 @@ button,
     flex-direction: column;
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border-strong));
-    border-radius: 15px;
-    box-shadow: var(--shadow-lg);
+    border-radius: 16px;
+    background-clip: padding-box;
+    clip-path: inset(0 round 16px);
     overflow: hidden;
 }
 

@@ -5,6 +5,9 @@ import { QuickAddApp } from '@/features/quick-add/QuickAddApp'
 import '@/styles/globals.css'
 
 const isQuickAdd = window.location.hash.includes('quick-add')
+if (isQuickAdd) {
+    document.documentElement.dataset.windowKind = 'quick-add'
+}
 const root = createRoot(document.getElementById('root'))
 
 root.render(<Providers>{isQuickAdd ? <QuickAddApp /> : <App />}</Providers>)
