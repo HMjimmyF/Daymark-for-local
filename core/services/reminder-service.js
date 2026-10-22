@@ -1,3 +1,5 @@
+const { getNextReminderAt } = require('../lib/recurrence')
+
 class ReminderService {
     constructor({ taskRepository, settingsService, notify, now = () => new Date(), intervalMs = 30_000 }) {
         this.taskRepository = taskRepository
@@ -44,7 +46,7 @@ class ReminderService {
                     body: task.title,
                     taskId: task.id
                 })
-                this.taskRepository.markReminderDelivered(task.id, task.remindAt, now.toISOString())
+                this.settleOccurrence(task, now)
             }
             if (due.length > direct.length) {
                 const extraCount = due.length - direct.length
@@ -54,7 +56,7 @@ class ReminderService {
                     taskId: null
                 })
                 for (const task of due.slice(direct.length)) {
-                    this.taskRepository.markReminderDelivered(task.id, task.remindAt, now.toISOString())
+                    this.settleOccurrence(task, now)
                 }
             }
             this.lastCheckedAt = now.toISOString()
@@ -63,6 +65,29 @@ class ReminderService {
         } finally {
             this.checking = false
         }
+    }
+
+    settleOccurrence(task, now) {
+        const deliveredAt = now.toISOString()
+        const nextRemindAt =
+            task.recurrenceType === 'none'
+                ? undefined
+                : getNextReminderAt(
+                      {
+                          recurrenceType: task.recurrenceType,
+                          recurrenceInterval: task.recurrenceInterval,
+                          recurrenceAnchorAt: task.recurrenceAnchorAt,
+                          recurrenceUntil: task.recurrenceUntil
+                      },
+                      task.remindAt,
+                      now
+                  )
+        this.taskRepository.completeReminderOccurrence({
+            taskId: task.id,
+            currentRemindAt: task.remindAt,
+            deliveredAt,
+            nextRemindAt
+        })
     }
 
     getStatus() {

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Bell, CalendarClock, Check, CheckCircle2, Plus, RotateCcw, Trash2, X } from 'lucide-react'
+import { Bell, CalendarClock, Check, CheckCircle2, Plus, Repeat2, RotateCcw, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PRIORITY_OPTIONS } from '@/components/common/view-config'
-import { fromDateTimeInput, toDateTimeInput } from '@/lib/date'
+import { RecurrenceFields } from '@/components/task/RecurrenceFields'
+import { formatRecurrence, fromDateInput, fromDateTimeInput, toDateInput, toDateTimeInput } from '@/lib/date'
 import { api } from '@/services/daymark'
 import { useAppStore } from '@/stores/app-store'
 import { useTaskDetail } from '@/hooks/use-app-data'
@@ -16,7 +17,10 @@ function formFromTask(task) {
         priority: task.priority,
         categoryId: task.categoryId || '',
         dueAt: toDateTimeInput(task.dueAt),
-        remindAt: toDateTimeInput(task.remindAt)
+        remindAt: toDateTimeInput(task.remindAt),
+        recurrenceType: task.recurrenceType || 'none',
+        recurrenceInterval: task.recurrenceInterval || 1,
+        recurrenceUntil: toDateInput(task.recurrenceUntil)
     }
 }
 
@@ -70,13 +74,17 @@ export function TaskDetailsPanel({ taskId, categories }) {
     }
 
     const update = (key, value) => setForm((current) => ({ ...current, [key]: value }))
+    const updateRecurrence = (patch) => setForm((current) => ({ ...current, ...patch }))
     const dirty =
         form.title !== task.title ||
         form.description !== (task.description || '') ||
         Number(form.priority) !== task.priority ||
         (form.categoryId || null) !== task.categoryId ||
         (form.dueAt || null) !== toDateTimeInput(task.dueAt) ||
-        (form.remindAt || null) !== toDateTimeInput(task.remindAt)
+        (form.remindAt || null) !== toDateTimeInput(task.remindAt) ||
+        form.recurrenceType !== (task.recurrenceType || 'none') ||
+        Number(form.recurrenceInterval) !== (task.recurrenceInterval || 1) ||
+        (form.recurrenceUntil || null) !== toDateInput(task.recurrenceUntil)
 
     const save = async () => {
         if (!form.title.trim()) {
@@ -91,7 +99,10 @@ export function TaskDetailsPanel({ taskId, categories }) {
                 priority: Number(form.priority),
                 categoryId: form.categoryId || null,
                 dueAt: fromDateTimeInput(form.dueAt),
-                remindAt: fromDateTimeInput(form.remindAt)
+                remindAt: fromDateTimeInput(form.remindAt),
+                recurrenceType: form.recurrenceType,
+                recurrenceInterval: Number(form.recurrenceInterval),
+                recurrenceUntil: fromDateInput(form.recurrenceUntil)
             })
             showToast('修改已保存')
         } catch (error) {
@@ -210,6 +221,7 @@ export function TaskDetailsPanel({ taskId, categories }) {
                             onChange={(event) => update('remindAt', event.target.value)}
                         />
                     </div>
+                    <RecurrenceFields idPrefix="detail" value={form} dueAt={form.dueAt} remindAt={form.remindAt} onChange={updateRecurrence} />
                     <div className="form-row">
                         <div>
                             <Label htmlFor="detail-priority">优先级</Label>
@@ -300,7 +312,10 @@ export function TaskDetailsPanel({ taskId, categories }) {
                     <div style={{ color: 'hsl(var(--subtle-foreground))', fontSize: 10 }}>
                         {task.remindAt && (
                             <span className="meta-item">
-                                <Bell size={10} /> 提醒将在应用运行时发送
+                                {task.recurrenceType !== 'none' ? <Repeat2 size={10} /> : <Bell size={10} />}
+                                {task.recurrenceType !== 'none'
+                                    ? `${formatRecurrence(task.recurrenceType, task.recurrenceInterval)}循环提醒将在应用运行时发送`
+                                    : '提醒将在应用运行时发送'}
                             </span>
                         )}
                         {!task.remindAt && task.dueAt && (

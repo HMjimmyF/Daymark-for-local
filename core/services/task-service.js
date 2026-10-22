@@ -10,6 +10,30 @@ function cleanText(value) {
     return cleaned || null
 }
 
+function normalizeRecurrence({ type, interval, until, remindAt, currentAnchor = null, resetAnchor = false }) {
+    if (type === 'none') {
+        return {
+            recurrenceType: 'none',
+            recurrenceInterval: 1,
+            recurrenceAnchorAt: null,
+            recurrenceUntil: null
+        }
+    }
+    if (!remindAt) {
+        throw new Error('循环提醒需要设置提醒时间')
+    }
+    const firstAt = new Date(remindAt)
+    if (until && new Date(until).getTime() <= firstAt.getTime()) {
+        throw new Error('循环结束时间必须晚于首次提醒时间')
+    }
+    return {
+        recurrenceType: type,
+        recurrenceInterval: type === 'custom' ? interval : 1,
+        recurrenceAnchorAt: resetAnchor || !currentAnchor ? remindAt : currentAnchor,
+        recurrenceUntil: until || null
+    }
+}
+
 class TaskService {
     constructor({ taskRepository, categoryRepository, now = () => new Date() }) {
         this.taskRepository = taskRepository
@@ -46,10 +70,18 @@ class TaskService {
         const parsed = taskInputSchema.parse(input)
         this.assertCategory(parsed.categoryId)
         this.assertParent(parsed.parentId)
+        const recurrence = normalizeRecurrence({
+            type: parsed.recurrenceType,
+            interval: parsed.recurrenceInterval,
+            until: parsed.recurrenceUntil,
+            remindAt: parsed.remindAt,
+            resetAnchor: true
+        })
 
         const timestamp = this.now().toISOString()
         return this.taskRepository.create({
             ...parsed,
+            ...recurrence,
             id: randomUUID(),
             title: parsed.title.trim(),
             description: cleanText(parsed.description),
@@ -78,8 +110,24 @@ class TaskService {
             }
         }
 
+        const recurrenceType = Object.hasOwn(parsed, 'recurrenceType') ? parsed.recurrenceType : existing.recurrenceType
+        const recurrenceInterval = Object.hasOwn(parsed, 'recurrenceInterval') ? parsed.recurrenceInterval : existing.recurrenceInterval
+        const recurrenceUntil = Object.hasOwn(parsed, 'recurrenceUntil') ? parsed.recurrenceUntil : existing.recurrenceUntil
+        const remindAt = Object.hasOwn(parsed, 'remindAt') ? parsed.remindAt : existing.remindAt
+        const recurrence = normalizeRecurrence({
+            type: recurrenceType,
+            interval: recurrenceInterval,
+            until: recurrenceUntil,
+            remindAt,
+            currentAnchor: existing.recurrenceAnchorAt,
+            resetAnchor:
+                (Object.hasOwn(parsed, 'remindAt') && parsed.remindAt !== existing.remindAt) ||
+                (Object.hasOwn(parsed, 'recurrenceType') && parsed.recurrenceType !== existing.recurrenceType)
+        })
+
         return this.taskRepository.update(validId, {
             ...parsed,
+            ...recurrence,
             ...(Object.hasOwn(parsed, 'title') ? { title: parsed.title.trim() } : {}),
             ...(Object.hasOwn(parsed, 'description') ? { description: cleanText(parsed.description) } : {}),
             updatedAt: this.now().toISOString()

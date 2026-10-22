@@ -4,6 +4,8 @@ const idSchema = z.string().uuid('任务或分类标识无效')
 const isoDateSchema = z.string().datetime({ offset: true, message: '日期格式无效' }).nullable()
 const titleSchema = z.string().trim().min(1, '任务标题不能为空').max(200, '任务标题不能超过 200 个字符')
 const descriptionSchema = z.string().max(5000, '描述不能超过 5000 个字符').nullable()
+const recurrenceTypeSchema = z.enum(['none', 'daily', 'weekdays', 'weekly', 'monthly', 'custom'])
+const recurrenceIntervalSchema = z.number().int().min(1, '循环间隔至少为 1 天').max(365, '循环间隔不能超过 365 天')
 
 const taskInputSchema = z.object({
     title: titleSchema,
@@ -12,7 +14,10 @@ const taskInputSchema = z.object({
     categoryId: idSchema.nullable().optional().default(null),
     parentId: idSchema.nullable().optional().default(null),
     dueAt: isoDateSchema.optional().default(null),
-    remindAt: isoDateSchema.optional().default(null)
+    remindAt: isoDateSchema.optional().default(null),
+    recurrenceType: recurrenceTypeSchema.optional().default('none'),
+    recurrenceInterval: recurrenceIntervalSchema.optional().default(1),
+    recurrenceUntil: isoDateSchema.optional().default(null)
 })
 
 const taskPatchSchema = z
@@ -23,7 +28,10 @@ const taskPatchSchema = z
         categoryId: idSchema.nullable().optional(),
         parentId: idSchema.nullable().optional(),
         dueAt: isoDateSchema.optional(),
-        remindAt: isoDateSchema.optional()
+        remindAt: isoDateSchema.optional(),
+        recurrenceType: recurrenceTypeSchema.optional(),
+        recurrenceInterval: recurrenceIntervalSchema.optional(),
+        recurrenceUntil: isoDateSchema.optional()
     })
     .refine((value) => Object.keys(value).length > 0, '没有需要更新的内容')
 

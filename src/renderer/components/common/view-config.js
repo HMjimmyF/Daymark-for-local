@@ -32,4 +32,13 @@ export const PRIORITY_OPTIONS = [
     { value: 3, label: '高优先级' }
 ]
 
+export const RECURRENCE_OPTIONS = [
+    { value: 'none', label: '不重复' },
+    { value: 'daily', label: '每天' },
+    { value: 'weekdays', label: '每个工作日' },
+    { value: 'weekly', label: '每周' },
+    { value: 'monthly', label: '每月' },
+    { value: 'custom', label: '自定义间隔' }
+]
+
 export const CATEGORY_COLORS = ['#5B82F6', '#20A37B', '#E7A33E', '#DB6D87', '#8B6FE8', '#4B9FAD']

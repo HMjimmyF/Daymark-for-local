@@ -13,6 +13,7 @@ import { SettingsService } from '../../core/services/settings-service'
 import { BackupService } from '../../core/services/backup-service'
 import { ExportService } from '../../core/services/export-service'
 import { ReminderService } from '../../core/services/reminder-service'
+import { migrations } from '../../core/database/migrations'
 
 let tempDir
 let manager
@@ -111,7 +112,7 @@ describe('SQLite repositories and services', () => {
             now: () => fixedNow
         })
         const backup = await backupService.create()
-        expect(DatabaseManager.validateDatabase(backup.path).version).toBe(1)
+        expect(DatabaseManager.validateDatabase(backup.path).version).toBe(2)
 
         taskService.create({ title: '恢复后应消失' })
         await backupService.restore(backup.path)
@@ -145,6 +146,66 @@ describe('SQLite repositories and services', () => {
         expect(task.id).toBeTruthy()
     })
 
+    it('advances the same task to its next recurring reminder', () => {
+        let reminderNow = new Date(2026, 9, 22, 10, 0, 0)
+        const notify = vi.fn()
+        notify.supported = () => true
+        const task = taskService.create({
+            title: '每天喝水',
+            remindAt: new Date(2026, 9, 22, 9, 0, 0).toISOString(),
+            recurrenceType: 'daily',
+            recurrenceInterval: 1
+        })
+        const reminders = new ReminderService({
+            taskRepository,
+            settingsService,
+            notify,
+            now: () => reminderNow
+        })
+
+        expect(reminders.check().delivered).toBe(1)
+        expect(new Date(taskService.get(task.id).remindAt).getTime()).toBe(new Date(2026, 9, 23, 9, 0, 0).getTime())
+        expect(reminders.check().delivered).toBe(0)
+
+        reminderNow = new Date(2026, 9, 23, 10, 0, 0)
+        expect(reminders.check().delivered).toBe(1)
+        expect(new Date(taskService.get(task.id).remindAt).getTime()).toBe(new Date(2026, 9, 24, 9, 0, 0).getTime())
+    })
+
+    it('ends a recurring reminder after its end date', () => {
+        const notify = vi.fn()
+        notify.supported = () => true
+        const task = taskService.create({
+            title: '仅今天循环',
+            remindAt: new Date(2026, 9, 22, 9, 0, 0).toISOString(),
+            recurrenceType: 'daily',
+            recurrenceInterval: 1,
+            recurrenceUntil: new Date(2026, 9, 22, 23, 59, 59).toISOString()
+        })
+        const reminders = new ReminderService({
+            taskRepository,
+            settingsService,
+            notify,
+            now: () => fixedNow
+        })
+
+        expect(reminders.check().delivered).toBe(1)
+        expect(taskService.get(task.id).remindAt).toBeNull()
+        expect(taskService.get(task.id).recurrenceType).toBe('none')
+    })
+
+    it('requires a reminder time and a valid end date for recurrence', () => {
+        expect(() => taskService.create({ title: '无提醒循环', recurrenceType: 'daily' })).toThrow('循环提醒需要设置提醒时间')
+        expect(() =>
+            taskService.create({
+                title: '错误结束时间',
+                remindAt: new Date(2026, 9, 22, 9, 0, 0).toISOString(),
+                recurrenceType: 'daily',
+                recurrenceUntil: new Date(2026, 9, 22, 8, 0, 0).toISOString()
+            })
+        ).toThrow('循环结束时间必须晚于首次提醒时间')
+    })
+
     it('exports escaped UTF-8 CSV and JSON without internal paths', () => {
         taskService.create({ title: '含,逗号与"引号"', description: '第一行\n第二行' })
         const exportService = new ExportService({
@@ -173,7 +234,30 @@ describe('migration safety', () => {
 
     it('tracks schema version in a real SQLite file', () => {
         const probe = new Database(path.join(tempDir, 'daymark.sqlite'), { readonly: true })
-        expect(probe.pragma('user_version', { simple: true })).toBe(1)
+        expect(probe.pragma('user_version', { simple: true })).toBe(2)
         probe.close()
+    })
+
+    it('upgrades an existing version 1 database without losing tasks', () => {
+        const legacyPath = path.join(tempDir, 'legacy.sqlite')
+        const legacy = new Database(legacyPath)
+        migrations[0].up(legacy)
+        legacy
+            .prepare(
+                `INSERT INTO tasks (id, title, status, priority, sort_order, created_at, updated_at)
+                 VALUES ('legacy-task', '旧任务', 'active', 1, 1, '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z')`
+            )
+            .run()
+        legacy.pragma('user_version = 1')
+        legacy.close()
+
+        const upgraded = new DatabaseManager(legacyPath)
+        upgraded.open()
+        const task = upgraded.db.prepare('SELECT title, recurrence_type FROM tasks WHERE id = ?').get('legacy-task')
+        const version = upgraded.db.pragma('user_version', { simple: true })
+        upgraded.close()
+
+        expect(version).toBe(2)
+        expect(task).toEqual({ title: '旧任务', recurrence_type: 'none' })
     })
 })

@@ -1,6 +1,6 @@
-import { AlertCircle, Bell, CalendarDays, Check, CheckCircle2, Flag, ListTree, MoreHorizontal, RotateCcw, Trash2 } from 'lucide-react'
+import { AlertCircle, Bell, CalendarDays, Check, CheckCircle2, Flag, ListTree, MoreHorizontal, Repeat2, RotateCcw, Trash2 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { formatCompletedDate, formatDueDate, formatShortDate } from '@/lib/date'
+import { formatCompletedDate, formatDueDate, formatRecurrence, formatShortDate } from '@/lib/date'
 
 export function TaskRow({ task, selected, onOpen, onComplete, onRemove }) {
     const completed = task.status === 'completed'
@@ -29,8 +29,10 @@ export function TaskRow({ task, selected, onOpen, onComplete, onRemove }) {
                         )}
                         {task.remindAt && (
                             <span className="meta-item">
-                                <Bell size={10} />
-                                {formatShortDate(task.remindAt)}
+                                {task.recurrenceType !== 'none' ? <Repeat2 size={10} /> : <Bell size={10} />}
+                                {task.recurrenceType !== 'none'
+                                    ? `${formatRecurrence(task.recurrenceType, task.recurrenceInterval)} · ${formatShortDate(task.remindAt)}`
+                                    : formatShortDate(task.remindAt)}
                             </span>
                         )}
                         {task.categoryName && (

@@ -5,7 +5,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { PRIORITY_OPTIONS } from '@/components/common/view-config'
-import { fromDateTimeInput } from '@/lib/date'
+import { RecurrenceFields } from '@/components/task/RecurrenceFields'
+import { fromDateInput, fromDateTimeInput } from '@/lib/date'
 import { api } from '@/services/daymark'
 import { useAppStore } from '@/stores/app-store'
 
@@ -14,6 +15,9 @@ const initialForm = {
     description: '',
     dueAt: '',
     remindAt: '',
+    recurrenceType: 'none',
+    recurrenceInterval: 1,
+    recurrenceUntil: '',
     priority: 0,
     categoryId: ''
 }
@@ -30,6 +34,7 @@ export function TaskCreateDialog({ open, categories, onClose, onCreated }) {
     }, [open])
 
     const update = (key, value) => setForm((current) => ({ ...current, [key]: value }))
+    const updateRecurrence = (patch) => setForm((current) => ({ ...current, ...patch }))
 
     const submit = async (event) => {
         event.preventDefault()
@@ -45,7 +50,10 @@ export function TaskCreateDialog({ open, categories, onClose, onCreated }) {
                 priority: Number(form.priority),
                 categoryId: form.categoryId || null,
                 dueAt: fromDateTimeInput(form.dueAt),
-                remindAt: fromDateTimeInput(form.remindAt)
+                remindAt: fromDateTimeInput(form.remindAt),
+                recurrenceType: form.recurrenceType,
+                recurrenceInterval: form.recurrenceInterval,
+                recurrenceUntil: fromDateInput(form.recurrenceUntil)
             })
             showToast('任务已添加')
             onCreated?.(task)
@@ -103,6 +111,7 @@ export function TaskCreateDialog({ open, categories, onClose, onCreated }) {
                             />
                         </div>
                     </div>
+                    <RecurrenceFields idPrefix="new-task" value={form} dueAt={form.dueAt} remindAt={form.remindAt} onChange={updateRecurrence} />
                     <div className="form-row">
                         <div>
                             <Label htmlFor="new-task-priority">优先级</Label>

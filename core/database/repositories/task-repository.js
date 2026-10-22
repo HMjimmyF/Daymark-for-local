@@ -11,6 +11,10 @@ const TASK_SELECT = `
         t.parent_id AS parentId,
         t.due_at AS dueAt,
         t.remind_at AS remindAt,
+        t.recurrence_type AS recurrenceType,
+        t.recurrence_interval AS recurrenceInterval,
+        t.recurrence_anchor_at AS recurrenceAnchorAt,
+        t.recurrence_until AS recurrenceUntil,
         t.completed_at AS completedAt,
         t.sort_order AS sortOrder,
         t.created_at AS createdAt,
@@ -112,10 +116,12 @@ class TaskRepository {
             .prepare(
                 `INSERT INTO tasks (
                     id, title, description, status, priority, category_id, parent_id,
-                    due_at, remind_at, completed_at, sort_order, created_at, updated_at, deleted_at
+                    due_at, remind_at, recurrence_type, recurrence_interval, recurrence_anchor_at,
+                    recurrence_until, completed_at, sort_order, created_at, updated_at, deleted_at
                 ) VALUES (
                     @id, @title, @description, @status, @priority, @categoryId, @parentId,
-                    @dueAt, @remindAt, @completedAt, @sortOrder, @createdAt, @updatedAt, NULL
+                    @dueAt, @remindAt, @recurrenceType, @recurrenceInterval, @recurrenceAnchorAt,
+                    @recurrenceUntil, @completedAt, @sortOrder, @createdAt, @updatedAt, NULL
                 )`
             )
             .run({
@@ -135,6 +141,10 @@ class TaskRepository {
             parentId: 'parent_id',
             dueAt: 'due_at',
             remindAt: 'remind_at',
+            recurrenceType: 'recurrence_type',
+            recurrenceInterval: 'recurrence_interval',
+            recurrenceAnchorAt: 'recurrence_anchor_at',
+            recurrenceUntil: 'recurrence_until',
             completedAt: 'completed_at',
             sortOrder: 'sort_order',
             updatedAt: 'updated_at'
@@ -196,6 +206,43 @@ class TaskRepository {
         this.database
             .prepare('INSERT OR IGNORE INTO reminder_deliveries (task_id, remind_at, delivered_at) VALUES (?, ?, ?)')
             .run(taskId, remindAt, deliveredAt)
+    }
+
+    completeReminderOccurrence({ taskId, currentRemindAt, deliveredAt, nextRemindAt }) {
+        const complete = this.database.transaction(() => {
+            this.database
+                .prepare('INSERT OR IGNORE INTO reminder_deliveries (task_id, remind_at, delivered_at) VALUES (?, ?, ?)')
+                .run(taskId, currentRemindAt, deliveredAt)
+
+            if (nextRemindAt === undefined) {
+                return
+            }
+
+            if (nextRemindAt) {
+                this.database
+                    .prepare(
+                        `UPDATE tasks
+                         SET remind_at = ?, recurrence_anchor_at = COALESCE(recurrence_anchor_at, ?), updated_at = ?
+                         WHERE id = ? AND remind_at = ? AND deleted_at IS NULL`
+                    )
+                    .run(nextRemindAt, currentRemindAt, deliveredAt, taskId, currentRemindAt)
+                return
+            }
+
+            this.database
+                .prepare(
+                    `UPDATE tasks
+                     SET remind_at = NULL,
+                         recurrence_type = 'none',
+                         recurrence_interval = 1,
+                         recurrence_anchor_at = NULL,
+                         recurrence_until = NULL,
+                         updated_at = ?
+                     WHERE id = ? AND remind_at = ? AND deleted_at IS NULL`
+                )
+                .run(deliveredAt, taskId, currentRemindAt)
+        })
+        complete()
     }
 }
 

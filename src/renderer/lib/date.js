@@ -1,4 +1,4 @@
-import { addDays, format, isSameDay, isTomorrow, parseISO, startOfDay } from 'date-fns'
+import { addDays, endOfDay, format, isSameDay, isTomorrow, parseISO, startOfDay } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 
 export function formatDueDate(value) {
@@ -36,6 +36,30 @@ export function fromDateTimeInput(value) {
     }
     const date = new Date(value)
     return Number.isNaN(date.getTime()) ? null : date.toISOString()
+}
+
+export function toDateInput(value) {
+    return value ? format(parseISO(value), 'yyyy-MM-dd') : ''
+}
+
+export function fromDateInput(value) {
+    if (!value) {
+        return null
+    }
+    const date = new Date(`${value}T00:00:00`)
+    return Number.isNaN(date.getTime()) ? null : endOfDay(date).toISOString()
+}
+
+export function formatRecurrence(type, interval = 1) {
+    const labels = {
+        none: '',
+        daily: '每天',
+        weekdays: '工作日',
+        weekly: '每周',
+        monthly: '每月',
+        custom: `每 ${interval} 天`
+    }
+    return labels[type] || ''
 }
 
 export function dateAt(hour, dayOffset = 0) {

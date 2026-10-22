@@ -55,6 +55,24 @@ const migrations = [
                 CREATE INDEX idx_tasks_remind_at ON tasks(remind_at, status, deleted_at);
             `)
         }
+    },
+    {
+        version: 2,
+        name: 'recurring-reminders',
+        up(database) {
+            database.exec(`
+                ALTER TABLE tasks ADD COLUMN recurrence_type TEXT NOT NULL DEFAULT 'none'
+                    CHECK (recurrence_type IN ('none', 'daily', 'weekdays', 'weekly', 'monthly', 'custom'));
+                ALTER TABLE tasks ADD COLUMN recurrence_interval INTEGER NOT NULL DEFAULT 1
+                    CHECK (recurrence_interval BETWEEN 1 AND 365);
+                ALTER TABLE tasks ADD COLUMN recurrence_anchor_at TEXT;
+                ALTER TABLE tasks ADD COLUMN recurrence_until TEXT;
+
+                CREATE INDEX idx_tasks_recurring_next
+                    ON tasks(status, remind_at, deleted_at)
+                    WHERE recurrence_type != 'none';
+            `)
+        }
     }
 ]
 
