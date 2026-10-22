@@ -1,5 +1,6 @@
 const path = require('node:path')
 const rspack = require('@rspack/core')
+const ReactRefreshPlugin = require('@rspack/plugin-react-refresh')
 
 const root = path.resolve(__dirname, '../..')
 const isProduction = process.env.NODE_ENV === 'production'
@@ -33,7 +34,8 @@ module.exports = {
                                 transform: {
                                     react: {
                                         runtime: 'automatic',
-                                        development: !isProduction
+                                        development: !isProduction,
+                                        refresh: !isProduction
                                     }
                                 }
                             }
@@ -62,10 +64,17 @@ module.exports = {
         }
     },
     plugins: [
+        !isProduction &&
+            new ReactRefreshPlugin({
+                overlay: {
+                    errors: true,
+                    warnings: false
+                }
+            }),
         new rspack.HtmlRspackPlugin({
             template: path.join(root, 'index.html')
         })
-    ],
+    ].filter(Boolean),
     optimization: {
         minimize: isProduction
     }

@@ -5,7 +5,7 @@ const { RspackDevServer } = require('@rspack/dev-server')
 const electron = require('electron')
 
 const root = path.resolve(__dirname, '..')
-const rendererUrl = 'http://localhost:5173'
+const rendererUrl = 'http://127.0.0.1:5173'
 let electronProcess = null
 let restarting = false
 let stopping = false
@@ -39,7 +39,15 @@ function startElectron() {
     if (stopping) {
         return
     }
-    electronProcess = spawn(electron, ['.'], {
+    const electronArguments = ['.']
+    if (process.env.DAYMARK_DEV_DATA_DIR) {
+        electronArguments.push(`--daymark-data-dir=${path.resolve(process.env.DAYMARK_DEV_DATA_DIR)}`)
+    }
+    if (process.env.DAYMARK_DEV_REMOTE_DEBUG_PORT) {
+        electronArguments.push(`--remote-debugging-port=${process.env.DAYMARK_DEV_REMOTE_DEBUG_PORT}`)
+    }
+
+    electronProcess = spawn(electron, electronArguments, {
         cwd: root,
         stdio: 'inherit',
         env: {
@@ -120,6 +128,7 @@ async function main() {
             port: 5173,
             host: '127.0.0.1',
             hot: true,
+            liveReload: true,
             historyApiFallback: true,
             devMiddleware: {
                 publicPath: '/'
