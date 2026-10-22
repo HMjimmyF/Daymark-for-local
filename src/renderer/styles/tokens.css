@@ -1,0 +1,63 @@
+:root,
+[data-theme='light'] {
+    color-scheme: light;
+    --background: 45 20% 97%;
+    --foreground: 225 15% 13%;
+    --card: 0 0% 100%;
+    --muted: 40 12% 93%;
+    --muted-foreground: 220 8% 44%;
+    --subtle-foreground: 220 7% 58%;
+    --border: 225 10% 89%;
+    --border-strong: 225 9% 80%;
+    --primary: 225 73% 60%;
+    --primary-strong: 225 72% 52%;
+    --primary-soft: 225 100% 96%;
+    --accent: 165 37% 40%;
+    --accent-soft: 165 43% 94%;
+    --danger: 0 66% 55%;
+    --danger-soft: 0 100% 97%;
+    --warning: 35 80% 49%;
+    --priority-high: 0 65% 56%;
+    --priority-medium: 35 78% 49%;
+    --priority-low: 205 70% 51%;
+    --focus-ring: 225 75% 60%;
+    --overlay: 225 20% 10% / 0.26;
+    --shadow-sm: 0 1px 2px hsl(225 20% 10% / 0.04);
+    --shadow-md: 0 14px 38px hsl(225 25% 10% / 0.12), 0 2px 8px hsl(225 25% 10% / 0.06);
+    --shadow-lg: 0 28px 70px hsl(225 25% 10% / 0.18), 0 4px 14px hsl(225 25% 10% / 0.08);
+    --radius-sm: 6px;
+    --radius-md: 9px;
+    --radius-lg: 14px;
+    --sidebar-width: 224px;
+    --details-width: 360px;
+    --duration: 150ms;
+    --font-sans: 'Segoe UI Variable', 'Segoe UI', 'Microsoft YaHei UI', sans-serif;
+}
+
+[data-theme='dark'] {
+    color-scheme: dark;
+    --background: 225 14% 10%;
+    --foreground: 220 14% 93%;
+    --card: 225 13% 13%;
+    --muted: 225 12% 17%;
+    --muted-foreground: 220 8% 67%;
+    --subtle-foreground: 220 7% 53%;
+    --border: 225 10% 21%;
+    --border-strong: 225 9% 30%;
+    --primary: 225 77% 68%;
+    --primary-strong: 225 78% 73%;
+    --primary-soft: 225 28% 19%;
+    --accent: 165 42% 56%;
+    --accent-soft: 165 24% 18%;
+    --danger: 0 72% 66%;
+    --danger-soft: 0 28% 18%;
+    --warning: 35 83% 61%;
+    --priority-high: 0 72% 66%;
+    --priority-medium: 35 80% 60%;
+    --priority-low: 205 75% 66%;
+    --focus-ring: 225 77% 68%;
+    --overlay: 225 25% 4% / 0.68;
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.2);
+    --shadow-md: 0 14px 38px hsl(0 0% 0% / 0.35), 0 2px 8px hsl(0 0% 0% / 0.2);
+    --shadow-lg: 0 28px 70px hsl(0 0% 0% / 0.5), 0 4px 14px hsl(0 0% 0% / 0.28);
+}

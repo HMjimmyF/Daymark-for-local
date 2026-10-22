@@ -1,0 +1,9 @@
+node_modules/
+dist/
+release/
+coverage/
+.rspack-cache/
+*.log
+data/
+.DS_Store
+Thumbs.db

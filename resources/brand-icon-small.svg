@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+    <title id="title">日序 Daymark 小尺寸图标</title>
+    <defs>
+        <clipPath id="tile">
+            <rect x="8" y="8" width="240" height="240" rx="56" />
+        </clipPath>
+    </defs>
+    <g clip-path="url(#tile)">
+        <rect x="8" y="8" width="240" height="240" fill="#FF9F43" />
+        <circle cx="128" cy="93" r="53" fill="#FFF7E9" />
+        <path d="M31 148C75 141 104 149 130 159C163 172 197 166 225 151C210 184 172 199 128 199C84 199 46 184 31 148Z" fill="#FFF7E9" />
+        <path d="M31 148C75 141 104 149 130 159C163 172 197 166 225 151C199 162 169 163 143 156C106 145 72 146 31 148Z" fill="#FFE7C2" />
+    </g>
+</svg>

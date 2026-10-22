@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+    <title id="title">日序 Daymark 深色图标</title>
+    <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0.8" y2="1">
+            <stop offset="0" stop-color="#253142" />
+            <stop offset="1" stop-color="#17202D" />
+        </linearGradient>
+        <linearGradient id="sun" x1="0" y1="0" x2="0.8" y2="1">
+            <stop offset="0" stop-color="#FFB55A" />
+            <stop offset="1" stop-color="#F8953A" />
+        </linearGradient>
+        <clipPath id="tile">
+            <rect x="8" y="8" width="240" height="240" rx="56" />
+        </clipPath>
+    </defs>
+    <g clip-path="url(#tile)">
+        <rect x="8" y="8" width="240" height="240" fill="url(#sky)" />
+        <circle cx="128" cy="96" r="47" fill="url(#sun)" />
+        <path d="M20 157C53 156 75 137 115 139C147 141 175 153 236 169V246H20Z" fill="#584A42" />
+        <path d="M20 177C57 164 95 164 126 177C158 191 194 194 236 173V246H20Z" fill="#3C3636" />
+        <path d="M20 209C57 189 95 190 128 205C159 219 194 219 236 194V246H20Z" fill="#2C4054" />
+        <path d="M20 209C57 189 95 190 128 205C159 219 194 219 236 194" fill="none" stroke="#71869B" stroke-opacity=".4" stroke-width="2.5" />
+    </g>
+</svg>

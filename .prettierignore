@@ -1,0 +1,8 @@
+node_modules
+dist
+release
+coverage
+.rspack-cache
+yarn.lock
+resources/*.png
+resources/*.ico

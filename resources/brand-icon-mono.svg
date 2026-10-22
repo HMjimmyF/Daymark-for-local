@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+    <title id="title">日序 Daymark 单色图标</title>
+    <rect x="8" y="8" width="240" height="240" rx="56" fill="#F7F7F8" />
+    <circle cx="128" cy="96" r="47" fill="#1F2937" />
+    <path d="M20 157C53 156 75 137 115 139C147 141 175 153 236 169V246H20Z" fill="#1F2937" />
+    <path d="M20 196C57 181 94 184 127 198C160 213 194 210 236 183V246H20Z" fill="#F7F7F8" />
+</svg>
