@@ -8,6 +8,33 @@
     box-sizing: border-box;
 }
 
+* {
+    scrollbar-color: hsl(var(--subtle-foreground) / 0.28) transparent;
+    scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: hsl(var(--subtle-foreground) / 0.26);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--subtle-foreground) / 0.44);
+}
+
+*::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
 html,
 body,
 #root {
@@ -389,8 +416,6 @@ button,
 .content-scroll {
     min-height: 0;
     overflow: auto;
-    scrollbar-color: hsl(var(--border-strong)) transparent;
-    scrollbar-width: thin;
 }
 
 .task-list {
@@ -869,6 +894,48 @@ button,
     transform: translateX(-50%);
 }
 
+.task-create-dialog {
+    display: grid;
+    width: min(calc(100vw - 32px), 620px);
+    max-height: min(88vh, 760px);
+    grid-template-rows: auto minmax(0, 1fr);
+    padding: 0;
+    overflow: hidden;
+}
+
+.task-create-header {
+    margin: 0;
+    padding: 20px 54px 17px 22px;
+    border-bottom: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+}
+
+.task-create-form {
+    display: grid;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.task-create-scroll {
+    min-height: 0;
+    padding: 18px 22px 22px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.task-create-footer {
+    margin: 0;
+    padding: 13px 22px;
+    border-top: 1px solid hsl(var(--border));
+    background: hsl(var(--card) / 0.96);
+}
+
+.task-create-required {
+    margin-right: auto;
+    color: hsl(var(--subtle-foreground));
+    font-size: 10.5px;
+}
+
 @keyframes overlay-in {
     from {
         opacity: 0;
@@ -913,6 +980,246 @@ button,
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+}
+
+.form-section {
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-md);
+    background: hsl(var(--muted) / 0.2);
+}
+
+.form-section-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+}
+
+.form-section-icon {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    background: hsl(var(--card));
+    color: hsl(var(--primary));
+}
+
+.form-section-title {
+    margin: 0;
+    font-size: 12.5px;
+    font-weight: 670;
+}
+
+.form-section-description {
+    margin: 1px 0 0;
+    color: hsl(var(--subtle-foreground));
+    font-size: 10.5px;
+    line-height: 1.55;
+}
+
+.field-hint {
+    margin: 5px 1px 0;
+    color: hsl(var(--subtle-foreground));
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.reminder-pattern-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.reminder-pattern-grid.with-month {
+    grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+}
+
+.schedule-summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    border-radius: 7px;
+    background: hsl(var(--primary) / 0.07);
+    color: hsl(var(--muted-foreground));
+    font-size: 10.5px;
+}
+
+.schedule-summary svg {
+    flex: 0 0 auto;
+    color: hsl(var(--primary));
+}
+
+.interval-editor {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.interval-editor > span {
+    color: hsl(var(--muted-foreground));
+    font-size: 11px;
+}
+
+.interval-editor .input {
+    width: 76px;
+}
+
+.interval-editor .select {
+    width: 92px;
+}
+
+.date-picker {
+    min-width: 0;
+}
+
+.date-picker-trigger {
+    display: flex;
+    width: 100%;
+    min-height: 38px;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-md);
+    background: hsl(var(--background) / 0.64);
+    color: hsl(var(--foreground));
+    cursor: pointer;
+    text-align: left;
+    transition:
+        border-color var(--duration),
+        box-shadow var(--duration),
+        background var(--duration);
+}
+
+.date-picker-trigger:hover {
+    border-color: hsl(var(--border-strong));
+}
+
+.date-picker-trigger.open,
+.date-picker-trigger:focus-visible {
+    border-color: hsl(var(--primary) / 0.55);
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+    outline: 0;
+}
+
+.date-picker-trigger:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.date-picker-trigger > svg:first-child {
+    flex: 0 0 auto;
+    color: hsl(var(--primary));
+}
+
+.date-picker-trigger > span {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.date-picker-trigger .placeholder {
+    color: hsl(var(--subtle-foreground));
+}
+
+.date-picker-chevron {
+    flex: 0 0 auto;
+    color: hsl(var(--subtle-foreground));
+    transition: transform var(--duration);
+}
+
+.date-picker-trigger.open .date-picker-chevron {
+    transform: rotate(180deg);
+}
+
+.date-picker-panel {
+    margin-top: 7px;
+    padding: 12px;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-md);
+    background: hsl(var(--card));
+    box-shadow: var(--shadow-md);
+    animation: picker-in 140ms ease-out;
+}
+
+.date-picker-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 9px;
+}
+
+.date-picker-control {
+    display: grid;
+    gap: 5px;
+}
+
+.date-picker-control > span:first-child {
+    color: hsl(var(--subtle-foreground));
+    font-size: 10px;
+    font-weight: 650;
+}
+
+.date-picker-time {
+    position: relative;
+}
+
+.date-picker-time > svg {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 10px;
+    color: hsl(var(--subtle-foreground));
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.date-picker-time .input {
+    padding-left: 31px;
+}
+
+.date-picker input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.55;
+}
+
+.date-picker-summary {
+    min-height: 18px;
+    margin-top: 9px;
+    color: hsl(var(--muted-foreground));
+    font-size: 10.5px;
+}
+
+.date-picker-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.date-picker-actions .button {
+    min-height: 31px;
+    padding: 0 10px;
+    font-size: 11px;
+}
+
+.date-picker-actions-spacer {
+    flex: 1;
+}
+
+@keyframes picker-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
 }
 
 .dialog-footer {
@@ -1539,6 +1846,24 @@ button,
 
     .settings-page {
         width: calc(100% - 26px);
+    }
+
+    .task-create-scroll {
+        padding-right: 16px;
+        padding-left: 16px;
+    }
+
+    .task-create-footer {
+        padding-right: 16px;
+        padding-left: 16px;
+    }
+
+    .task-create-required {
+        display: none;
+    }
+
+    .date-picker-grid {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 

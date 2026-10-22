@@ -76,6 +76,7 @@ class ReminderService {
                       {
                           recurrenceType: task.recurrenceType,
                           recurrenceInterval: task.recurrenceInterval,
+                          recurrenceUnit: task.recurrenceUnit,
                           recurrenceAnchorAt: task.recurrenceAnchorAt,
                           recurrenceUntil: task.recurrenceUntil
                       },

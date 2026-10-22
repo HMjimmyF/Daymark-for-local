@@ -38,4 +38,21 @@ describe('TaskService validation', () => {
         const service = createService()
         expect(() => service.create({ title: '测试', dueAt: '2026-10-22 18:00' })).toThrow('日期格式无效')
     })
+
+    it('normalizes recurrence units and validates custom units', () => {
+        const service = createService()
+        const fixedReminder = '2026-10-22T09:00:00.000Z'
+        const recurring = service.create({
+            title: '按季度复盘',
+            remindAt: fixedReminder,
+            recurrenceType: 'custom',
+            recurrenceInterval: 3,
+            recurrenceUnit: 'month'
+        })
+        const oneTime = service.create({ title: '一次性提醒', remindAt: fixedReminder })
+
+        expect(recurring.recurrenceUnit).toBe('month')
+        expect(oneTime.recurrenceUnit).toBe('day')
+        expect(() => service.create({ title: '错误单位', recurrenceType: 'custom', recurrenceUnit: 'week' })).toThrow()
+    })
 })

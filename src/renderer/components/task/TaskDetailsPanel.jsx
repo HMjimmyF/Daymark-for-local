@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Bell, CalendarClock, Check, CheckCircle2, Plus, Repeat2, RotateCcw, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { DateTimePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PRIORITY_OPTIONS } from '@/components/common/view-config'
 import { RecurrenceFields } from '@/components/task/RecurrenceFields'
-import { formatRecurrence, fromDateInput, fromDateTimeInput, toDateInput, toDateTimeInput } from '@/lib/date'
+import { ReminderFields } from '@/components/task/ReminderFields'
+import { buildRecurringReminderAt, formatRecurrence, fromDateInput, fromDateTimeInput, toDateInput, toDateTimeInput } from '@/lib/date'
 import { api } from '@/services/daymark'
 import { useAppStore } from '@/stores/app-store'
 import { useTaskDetail } from '@/hooks/use-app-data'
@@ -20,6 +22,7 @@ function formFromTask(task) {
         remindAt: toDateTimeInput(task.remindAt),
         recurrenceType: task.recurrenceType || 'none',
         recurrenceInterval: task.recurrenceInterval || 1,
+        recurrenceUnit: task.recurrenceUnit || 'day',
         recurrenceUntil: toDateInput(task.recurrenceUntil)
     }
 }
@@ -74,7 +77,15 @@ export function TaskDetailsPanel({ taskId, categories }) {
     }
 
     const update = (key, value) => setForm((current) => ({ ...current, [key]: value }))
-    const updateRecurrence = (patch) => setForm((current) => ({ ...current, ...patch }))
+    const updateRecurrence = (patch) =>
+        setForm((current) => {
+            const next = { ...current, ...patch }
+            const ruleShapeChanged = Object.hasOwn(patch, 'recurrenceType') || Object.hasOwn(patch, 'recurrenceUnit')
+            if (next.recurrenceType !== 'none' && (ruleShapeChanged || !next.remindAt)) {
+                next.remindAt = buildRecurringReminderAt(next)
+            }
+            return next
+        })
     const dirty =
         form.title !== task.title ||
         form.description !== (task.description || '') ||
@@ -84,6 +95,7 @@ export function TaskDetailsPanel({ taskId, categories }) {
         (form.remindAt || null) !== toDateTimeInput(task.remindAt) ||
         form.recurrenceType !== (task.recurrenceType || 'none') ||
         Number(form.recurrenceInterval) !== (task.recurrenceInterval || 1) ||
+        form.recurrenceUnit !== (task.recurrenceUnit || 'day') ||
         (form.recurrenceUntil || null) !== toDateInput(task.recurrenceUntil)
 
     const save = async () => {
@@ -102,6 +114,7 @@ export function TaskDetailsPanel({ taskId, categories }) {
                 remindAt: fromDateTimeInput(form.remindAt),
                 recurrenceType: form.recurrenceType,
                 recurrenceInterval: Number(form.recurrenceInterval),
+                recurrenceUnit: form.recurrenceUnit,
                 recurrenceUntil: fromDateInput(form.recurrenceUntil)
             })
             showToast('修改已保存')
@@ -201,27 +214,15 @@ export function TaskDetailsPanel({ taskId, categories }) {
                 <hr className="details-divider" />
 
                 <div className="field-grid">
-                    <div>
-                        <Label htmlFor="detail-due">截止时间</Label>
-                        <Input
-                            id="detail-due"
-                            className="date-input"
-                            type="datetime-local"
-                            value={form.dueAt}
-                            onChange={(event) => update('dueAt', event.target.value)}
-                        />
+                    <RecurrenceFields idPrefix="detail" value={form} onChange={updateRecurrence} />
+                    <ReminderFields idPrefix="detail" value={form} onChange={updateRecurrence} />
+                    <div className="form-section due-section">
+                        <div>
+                            <Label htmlFor="detail-due">完成截止时间（可选）</Label>
+                            <DateTimePicker id="detail-due" value={form.dueAt} onChange={(dueAt) => update('dueAt', dueAt)} placeholder="选择日期和时间" />
+                            <p className="field-hint">用于列表排序和逾期标识，不会自动发送通知。</p>
+                        </div>
                     </div>
-                    <div>
-                        <Label htmlFor="detail-remind">提醒时间</Label>
-                        <Input
-                            id="detail-remind"
-                            className="date-input"
-                            type="datetime-local"
-                            value={form.remindAt}
-                            onChange={(event) => update('remindAt', event.target.value)}
-                        />
-                    </div>
-                    <RecurrenceFields idPrefix="detail" value={form} dueAt={form.dueAt} remindAt={form.remindAt} onChange={updateRecurrence} />
                     <div className="form-row">
                         <div>
                             <Label htmlFor="detail-priority">优先级</Label>
@@ -314,13 +315,13 @@ export function TaskDetailsPanel({ taskId, categories }) {
                             <span className="meta-item">
                                 {task.recurrenceType !== 'none' ? <Repeat2 size={10} /> : <Bell size={10} />}
                                 {task.recurrenceType !== 'none'
-                                    ? `${formatRecurrence(task.recurrenceType, task.recurrenceInterval)}循环提醒将在应用运行时发送`
+                                    ? `${formatRecurrence(task.recurrenceType, task.recurrenceInterval, task.recurrenceUnit)}循环提醒将在应用运行时发送`
                                     : '提醒将在应用运行时发送'}
                             </span>
                         )}
                         {!task.remindAt && task.dueAt && (
                             <span className="meta-item">
-                                <CalendarClock size={10} /> 截止时间已设置
+                                <CalendarClock size={10} /> 完成截止时间已设置
                             </span>
                         )}
                     </div>

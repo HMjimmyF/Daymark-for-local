@@ -13,6 +13,7 @@ const TASK_SELECT = `
         t.remind_at AS remindAt,
         t.recurrence_type AS recurrenceType,
         t.recurrence_interval AS recurrenceInterval,
+        t.recurrence_unit AS recurrenceUnit,
         t.recurrence_anchor_at AS recurrenceAnchorAt,
         t.recurrence_until AS recurrenceUntil,
         t.completed_at AS completedAt,
@@ -116,11 +117,11 @@ class TaskRepository {
             .prepare(
                 `INSERT INTO tasks (
                     id, title, description, status, priority, category_id, parent_id,
-                    due_at, remind_at, recurrence_type, recurrence_interval, recurrence_anchor_at,
+                    due_at, remind_at, recurrence_type, recurrence_interval, recurrence_unit, recurrence_anchor_at,
                     recurrence_until, completed_at, sort_order, created_at, updated_at, deleted_at
                 ) VALUES (
                     @id, @title, @description, @status, @priority, @categoryId, @parentId,
-                    @dueAt, @remindAt, @recurrenceType, @recurrenceInterval, @recurrenceAnchorAt,
+                    @dueAt, @remindAt, @recurrenceType, @recurrenceInterval, @recurrenceUnit, @recurrenceAnchorAt,
                     @recurrenceUntil, @completedAt, @sortOrder, @createdAt, @updatedAt, NULL
                 )`
             )
@@ -143,6 +144,7 @@ class TaskRepository {
             remindAt: 'remind_at',
             recurrenceType: 'recurrence_type',
             recurrenceInterval: 'recurrence_interval',
+            recurrenceUnit: 'recurrence_unit',
             recurrenceAnchorAt: 'recurrence_anchor_at',
             recurrenceUntil: 'recurrence_until',
             completedAt: 'completed_at',
@@ -235,6 +237,7 @@ class TaskRepository {
                      SET remind_at = NULL,
                          recurrence_type = 'none',
                          recurrence_interval = 1,
+                             recurrence_unit = 'day',
                          recurrence_anchor_at = NULL,
                          recurrence_until = NULL,
                          updated_at = ?

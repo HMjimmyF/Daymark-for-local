@@ -31,7 +31,7 @@ export function TaskRow({ task, selected, onOpen, onComplete, onRemove }) {
                             <span className="meta-item">
                                 {task.recurrenceType !== 'none' ? <Repeat2 size={10} /> : <Bell size={10} />}
                                 {task.recurrenceType !== 'none'
-                                    ? `${formatRecurrence(task.recurrenceType, task.recurrenceInterval)} · ${formatShortDate(task.remindAt)}`
+                                    ? `${formatRecurrence(task.recurrenceType, task.recurrenceInterval, task.recurrenceUnit)} · ${formatShortDate(task.remindAt)}`
                                     : formatShortDate(task.remindAt)}
                             </span>
                         )}

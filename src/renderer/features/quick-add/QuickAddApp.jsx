@@ -92,13 +92,13 @@ export function QuickAddApp() {
                 />
                 <div className="quick-add-fields">
                     <label>
-                        <span className="field-label">截止时间</span>
+                        <span className="field-label">完成截止</span>
                         <input
                             className="date-input"
                             type="datetime-local"
                             value={dueAt}
                             onChange={(event) => setDueAt(event.target.value)}
-                            aria-label="截止时间"
+                            aria-label="完成截止时间"
                         />
                     </label>
                     <label>

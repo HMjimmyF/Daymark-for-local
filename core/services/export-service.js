@@ -11,6 +11,7 @@ const CSV_COLUMNS = [
     ['remindAt', '提醒时间'],
     ['recurrenceType', '重复类型'],
     ['recurrenceInterval', '重复间隔'],
+    ['recurrenceUnit', '重复单位'],
     ['recurrenceUntil', '重复结束时间'],
     ['completedAt', '完成时间'],
     ['createdAt', '创建时间'],

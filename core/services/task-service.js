@@ -10,11 +10,12 @@ function cleanText(value) {
     return cleaned || null
 }
 
-function normalizeRecurrence({ type, interval, until, remindAt, currentAnchor = null, resetAnchor = false }) {
+function normalizeRecurrence({ type, interval, unit = 'day', until, remindAt, currentAnchor = null, resetAnchor = false }) {
     if (type === 'none') {
         return {
             recurrenceType: 'none',
             recurrenceInterval: 1,
+            recurrenceUnit: 'day',
             recurrenceAnchorAt: null,
             recurrenceUntil: null
         }
@@ -29,6 +30,7 @@ function normalizeRecurrence({ type, interval, until, remindAt, currentAnchor = 
     return {
         recurrenceType: type,
         recurrenceInterval: type === 'custom' ? interval : 1,
+        recurrenceUnit: type === 'custom' ? unit : 'day',
         recurrenceAnchorAt: resetAnchor || !currentAnchor ? remindAt : currentAnchor,
         recurrenceUntil: until || null
     }
@@ -73,6 +75,7 @@ class TaskService {
         const recurrence = normalizeRecurrence({
             type: parsed.recurrenceType,
             interval: parsed.recurrenceInterval,
+            unit: parsed.recurrenceUnit,
             until: parsed.recurrenceUntil,
             remindAt: parsed.remindAt,
             resetAnchor: true
@@ -112,17 +115,20 @@ class TaskService {
 
         const recurrenceType = Object.hasOwn(parsed, 'recurrenceType') ? parsed.recurrenceType : existing.recurrenceType
         const recurrenceInterval = Object.hasOwn(parsed, 'recurrenceInterval') ? parsed.recurrenceInterval : existing.recurrenceInterval
+        const recurrenceUnit = Object.hasOwn(parsed, 'recurrenceUnit') ? parsed.recurrenceUnit : existing.recurrenceUnit
         const recurrenceUntil = Object.hasOwn(parsed, 'recurrenceUntil') ? parsed.recurrenceUntil : existing.recurrenceUntil
         const remindAt = Object.hasOwn(parsed, 'remindAt') ? parsed.remindAt : existing.remindAt
         const recurrence = normalizeRecurrence({
             type: recurrenceType,
             interval: recurrenceInterval,
+            unit: recurrenceUnit,
             until: recurrenceUntil,
             remindAt,
             currentAnchor: existing.recurrenceAnchorAt,
             resetAnchor:
                 (Object.hasOwn(parsed, 'remindAt') && parsed.remindAt !== existing.remindAt) ||
-                (Object.hasOwn(parsed, 'recurrenceType') && parsed.recurrenceType !== existing.recurrenceType)
+                (Object.hasOwn(parsed, 'recurrenceType') && parsed.recurrenceType !== existing.recurrenceType) ||
+                (Object.hasOwn(parsed, 'recurrenceUnit') && parsed.recurrenceUnit !== existing.recurrenceUnit)
         })
 
         return this.taskRepository.update(validId, {

@@ -70,4 +70,48 @@ describe('recurring reminder schedule', () => {
         )
         expect(ended).toBeNull()
     })
+
+    it('supports custom month and year intervals from a stable anchor', () => {
+        const january = localDate(2026, 1, 31)
+        const april = getNextReminderAt(
+            {
+                recurrenceType: 'custom',
+                recurrenceInterval: 3,
+                recurrenceUnit: 'month',
+                recurrenceAnchorAt: january.toISOString()
+            },
+            january.toISOString(),
+            january
+        )
+        expect(new Date(april).getTime()).toBe(localDate(2026, 4, 30).getTime())
+
+        const leapDay = localDate(2028, 2, 29)
+        const nextYear = getNextReminderAt(
+            {
+                recurrenceType: 'custom',
+                recurrenceInterval: 1,
+                recurrenceUnit: 'year',
+                recurrenceAnchorAt: leapDay.toISOString()
+            },
+            leapDay.toISOString(),
+            leapDay
+        )
+        expect(new Date(nextYear).getTime()).toBe(localDate(2029, 2, 28).getTime())
+    })
+
+    it('rejects an unknown custom recurrence unit', () => {
+        const current = localDate(2026, 10, 22)
+        expect(() =>
+            getNextReminderAt(
+                {
+                    recurrenceType: 'custom',
+                    recurrenceInterval: 1,
+                    recurrenceUnit: 'week',
+                    recurrenceAnchorAt: current.toISOString()
+                },
+                current.toISOString(),
+                current
+            )
+        ).toThrow('自定义循环单位无效')
+    })
 })

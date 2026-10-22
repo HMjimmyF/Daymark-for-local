@@ -33,7 +33,7 @@ export const PRIORITY_OPTIONS = [
 ]
 
 export const RECURRENCE_OPTIONS = [
-    { value: 'none', label: '不重复' },
+    { value: 'none', label: '仅提醒一次' },
     { value: 'daily', label: '每天' },
     { value: 'weekdays', label: '每个工作日' },
     { value: 'weekly', label: '每周' },

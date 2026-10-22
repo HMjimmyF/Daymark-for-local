@@ -141,7 +141,7 @@ export function CommandPalette() {
                                     <CheckCircle2 size={15} />
                                     <span className="command-item-main">
                                         <span className="command-item-title">{action.task.title}</span>
-                                        <span className="command-item-hint">{action.task.dueAt ? formatShortDate(action.task.dueAt) : '无截止时间'}</span>
+                                        <span className="command-item-hint">{action.task.dueAt ? formatShortDate(action.task.dueAt) : '无完成截止时间'}</span>
                                     </span>
                                 </button>
                             )

@@ -73,6 +73,16 @@ const migrations = [
                     WHERE recurrence_type != 'none';
             `)
         }
+    },
+    {
+        version: 3,
+        name: 'custom-recurrence-units',
+        up(database) {
+            database.exec(`
+                ALTER TABLE tasks ADD COLUMN recurrence_unit TEXT NOT NULL DEFAULT 'day'
+                    CHECK (recurrence_unit IN ('day', 'month', 'year'));
+            `)
+        }
     }
 ]
 

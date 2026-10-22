@@ -112,7 +112,7 @@ describe('SQLite repositories and services', () => {
             now: () => fixedNow
         })
         const backup = await backupService.create()
-        expect(DatabaseManager.validateDatabase(backup.path).version).toBe(2)
+        expect(DatabaseManager.validateDatabase(backup.path).version).toBe(3)
 
         taskService.create({ title: '恢复后应消失' })
         await backupService.restore(backup.path)
@@ -170,6 +170,33 @@ describe('SQLite repositories and services', () => {
         reminderNow = new Date(2026, 9, 23, 10, 0, 0)
         expect(reminders.check().delivered).toBe(1)
         expect(new Date(taskService.get(task.id).remindAt).getTime()).toBe(new Date(2026, 9, 24, 9, 0, 0).getTime())
+    })
+
+    it('persists and advances custom month recurrence units', () => {
+        let reminderNow = new Date(2026, 9, 22, 10, 0, 0)
+        const notify = vi.fn()
+        notify.supported = () => true
+        const task = taskService.create({
+            title: '季度复盘',
+            remindAt: new Date(2026, 9, 22, 9, 0, 0).toISOString(),
+            recurrenceType: 'custom',
+            recurrenceInterval: 3,
+            recurrenceUnit: 'month'
+        })
+        const reminders = new ReminderService({
+            taskRepository,
+            settingsService,
+            notify,
+            now: () => reminderNow
+        })
+
+        expect(reminders.check().delivered).toBe(1)
+        expect(taskService.get(task.id).recurrenceUnit).toBe('month')
+        expect(new Date(taskService.get(task.id).remindAt).getTime()).toBe(new Date(2027, 0, 22, 9, 0, 0).getTime())
+
+        reminderNow = new Date(2027, 0, 22, 10, 0, 0)
+        expect(reminders.check().delivered).toBe(1)
+        expect(new Date(taskService.get(task.id).remindAt).getTime()).toBe(new Date(2027, 3, 22, 9, 0, 0).getTime())
     })
 
     it('ends a recurring reminder after its end date', () => {
@@ -234,7 +261,7 @@ describe('migration safety', () => {
 
     it('tracks schema version in a real SQLite file', () => {
         const probe = new Database(path.join(tempDir, 'daymark.sqlite'), { readonly: true })
-        expect(probe.pragma('user_version', { simple: true })).toBe(2)
+        expect(probe.pragma('user_version', { simple: true })).toBe(3)
         probe.close()
     })
 
@@ -253,11 +280,11 @@ describe('migration safety', () => {
 
         const upgraded = new DatabaseManager(legacyPath)
         upgraded.open()
-        const task = upgraded.db.prepare('SELECT title, recurrence_type FROM tasks WHERE id = ?').get('legacy-task')
+        const task = upgraded.db.prepare('SELECT title, recurrence_type, recurrence_unit FROM tasks WHERE id = ?').get('legacy-task')
         const version = upgraded.db.pragma('user_version', { simple: true })
         upgraded.close()
 
-        expect(version).toBe(2)
-        expect(task).toEqual({ title: '旧任务', recurrence_type: 'none' })
+        expect(version).toBe(3)
+        expect(task).toEqual({ title: '旧任务', recurrence_type: 'none', recurrence_unit: 'day' })
     })
 })
