@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Topbar } from '@/components/layout/Topbar'
@@ -8,6 +8,7 @@ import { TaskDetailsPanel } from '@/components/task/TaskDetailsPanel'
 import { TaskCreateDialog } from '@/components/dialog/TaskCreateDialog'
 import { CommandPalette } from '@/components/dialog/CommandPalette'
 import { CategoryManagerDialog } from '@/components/dialog/CategoryManagerDialog'
+import { CompleteRecurringDialog } from '@/components/dialog/CompleteRecurringDialog'
 import { SettingsPage } from '@/components/settings/SettingsPage'
 import { useAppData } from '@/hooks/use-app-data'
 import { useTheme } from '@/hooks/use-theme'
@@ -54,6 +55,7 @@ export function App() {
     const setCategoryManagerOpen = useAppStore((state) => state.setCategoryManagerOpen)
     const openTask = useAppStore((state) => state.openTask)
     const showToast = useAppStore((state) => state.showToast)
+    const [recurringCompletionTask, setRecurringCompletionTask] = useState(null)
 
     const appData = useAppData({ activeView, categoryId, search })
     const selectedCategory = useMemo(() => appData.categories.find((category) => category.id === categoryId), [appData.categories, categoryId])
@@ -81,7 +83,7 @@ export function App() {
         [openTask]
     )
 
-    const completeTask = async (task) => {
+    const toggleTaskStatus = async (task) => {
         try {
             if (task.status === 'completed') {
                 await api.tasks.reopen(task.id)
@@ -92,6 +94,22 @@ export function App() {
             }
         } catch (error) {
             showToast(error.message, 'error')
+        }
+    }
+
+    const completeTask = async (task) => {
+        if (task.status !== 'completed' && task.recurrenceType !== 'none' && task.remindAt) {
+            setRecurringCompletionTask(task)
+            return
+        }
+        await toggleTaskStatus(task)
+    }
+
+    const confirmRecurringCompletion = async () => {
+        const task = recurringCompletionTask
+        setRecurringCompletionTask(null)
+        if (task) {
+            await toggleTaskStatus(task)
         }
     }
 
@@ -146,12 +164,13 @@ export function App() {
                                 )}
                             </div>
                         </main>
-                        {showDetails && <TaskDetailsPanel taskId={selectedTaskId} categories={appData.categories} />}
+                        {showDetails && <TaskDetailsPanel taskId={selectedTaskId} categories={appData.categories} onCompleteTask={completeTask} />}
                     </div>
                 </section>
             </div>
 
             <TaskCreateDialog open={createOpen} categories={appData.categories} onClose={() => setCreateOpen(false)} onCreated={(task) => openTask(task.id)} />
+            <CompleteRecurringDialog task={recurringCompletionTask} onCancel={() => setRecurringCompletionTask(null)} onConfirm={confirmRecurringCompletion} />
             <CommandPalette />
             <CategoryManagerDialog
                 open={categoryManagerOpen}

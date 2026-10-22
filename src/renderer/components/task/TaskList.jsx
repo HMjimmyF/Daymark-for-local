@@ -1,6 +1,13 @@
-import { CalendarCheck2, CheckCircle2, Inbox, Plus, SearchX } from 'lucide-react'
+import { CalendarCheck2, CheckCircle2, Inbox, ListTodo, Plus, Repeat2, SearchX } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { getTaskGroups } from '@/lib/task-groups'
 import { TaskRow } from './TaskRow'
+
+const GROUP_ICONS = {
+    completed: CheckCircle2,
+    recurring: Repeat2,
+    pending: ListTodo
+}
 
 function EmptyState({ view, searching, onCreate }) {
     const config = searching
@@ -46,12 +53,32 @@ export function TaskList({ tasks, loading, view, search, selectedTaskId, onCreat
         return <EmptyState view={view} searching={Boolean(search)} onCreate={onCreate} />
     }
 
+    const groups = getTaskGroups(tasks, view)
+
     return (
         <div className="task-list">
-            <div className="list-day">{view === 'completed' ? '最近完成' : search ? '搜索结果' : '待处理'}</div>
-            {tasks.map((task) => (
-                <TaskRow key={task.id} task={task} selected={selectedTaskId === task.id} onOpen={onOpen} onComplete={onComplete} onRemove={onRemove} />
-            ))}
+            {groups.map((group) => {
+                const Icon = GROUP_ICONS[group.key]
+                return (
+                    <section className={`task-group task-group-${group.key}`} key={group.key} aria-label={group.label}>
+                        <div className="list-day">
+                            <Icon size={12} aria-hidden="true" />
+                            <span>{group.label}</span>
+                            <span className="list-day-count">{group.tasks.length}</span>
+                        </div>
+                        {group.tasks.map((task) => (
+                            <TaskRow
+                                key={task.id}
+                                task={task}
+                                selected={selectedTaskId === task.id}
+                                onOpen={onOpen}
+                                onComplete={onComplete}
+                                onRemove={onRemove}
+                            />
+                        ))}
+                    </section>
+                )
+            })}
         </div>
     )
 }

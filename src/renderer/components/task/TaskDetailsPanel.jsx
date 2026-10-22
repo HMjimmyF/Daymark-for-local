@@ -27,7 +27,7 @@ function formFromTask(task) {
     }
 }
 
-export function TaskDetailsPanel({ taskId, categories }) {
+export function TaskDetailsPanel({ taskId, categories, onCompleteTask }) {
     const { task, loading, reload } = useTaskDetail(taskId)
     const [form, setForm] = useState(null)
     const [draft, setDraft] = useState('')
@@ -125,20 +125,7 @@ export function TaskDetailsPanel({ taskId, categories }) {
         }
     }
 
-    const toggleComplete = async () => {
-        try {
-            if (task.status === 'completed') {
-                await api.tasks.reopen(task.id)
-                showToast('任务已重新打开')
-            } else {
-                await api.tasks.complete(task.id)
-                showToast('任务已完成')
-            }
-            reload()
-        } catch (error) {
-            showToast(error.message, 'error')
-        }
-    }
+    const toggleComplete = () => onCompleteTask(task)
 
     const remove = async () => {
         if (!window.confirm(`确定删除“${task.title}”吗？任务会从当前列表中移除。`)) {
@@ -153,18 +140,7 @@ export function TaskDetailsPanel({ taskId, categories }) {
         }
     }
 
-    const toggleChild = async (child) => {
-        try {
-            if (child.status === 'completed') {
-                await api.tasks.reopen(child.id)
-            } else {
-                await api.tasks.complete(child.id)
-            }
-            reload()
-        } catch (error) {
-            showToast(error.message, 'error')
-        }
-    }
+    const toggleChild = (child) => onCompleteTask(child)
 
     const addChild = async (event) => {
         event.preventDefault()

@@ -76,6 +76,20 @@ describe('SQLite repositories and services', () => {
         expect(taskService.list({ view: 'upcoming' }).map((task) => task.title)).toEqual(['今天任务', '第七天任务'])
     })
 
+    it('includes recurring reminder times in today and upcoming ranges', () => {
+        const todayAt9 = new Date(2026, 9, 22, 9, 0, 0).toISOString()
+        const seventhDayAt9 = new Date(2026, 9, 28, 9, 0, 0).toISOString()
+        const eighthDayAt9 = new Date(2026, 9, 29, 9, 0, 0).toISOString()
+        taskService.create({ title: '今天重复提醒', remindAt: todayAt9, recurrenceType: 'daily' })
+        taskService.create({ title: '第七天重复提醒', remindAt: seventhDayAt9, recurrenceType: 'weekly' })
+        taskService.create({ title: '范围外重复提醒', remindAt: eighthDayAt9, recurrenceType: 'monthly' })
+        taskService.create({ title: '一次性提醒不进入日历视图', remindAt: todayAt9 })
+
+        expect(taskService.list({ view: 'today' }).map((task) => task.title)).toEqual(['今天重复提醒'])
+        expect(taskService.list({ view: 'upcoming' }).map((task) => task.title)).toEqual(['今天重复提醒', '第七天重复提醒'])
+        expect(taskService.getCounts()).toMatchObject({ today: 1, upcoming: 2 })
+    })
+
     it('moves tasks to the inbox when deleting a category', () => {
         const category = categoryService.create({ name: '工作', color: '#5B82F6' })
         const task = taskService.create({ title: '分类任务', categoryId: category.id })
@@ -170,6 +184,27 @@ describe('SQLite repositories and services', () => {
         reminderNow = new Date(2026, 9, 23, 10, 0, 0)
         expect(reminders.check().delivered).toBe(1)
         expect(new Date(taskService.get(task.id).remindAt).getTime()).toBe(new Date(2026, 9, 24, 9, 0, 0).getTime())
+    })
+
+    it('stops recurring reminders after a recurring task is completed', () => {
+        const notify = vi.fn()
+        notify.supported = () => true
+        const task = taskService.create({
+            title: '完成后的重复待办',
+            remindAt: new Date(2026, 9, 22, 9, 0, 0).toISOString(),
+            recurrenceType: 'daily'
+        })
+        const reminders = new ReminderService({
+            taskRepository,
+            settingsService,
+            notify,
+            now: () => fixedNow
+        })
+
+        taskService.complete(task.id)
+        expect(reminders.check().delivered).toBe(0)
+        expect(notify).not.toHaveBeenCalled()
+        expect(taskService.get(task.id).status).toBe('completed')
     })
 
     it('persists and advances custom month recurrence units', () => {

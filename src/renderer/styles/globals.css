@@ -437,6 +437,28 @@ button,
     text-transform: uppercase;
 }
 
+.list-day svg {
+    flex: 0 0 auto;
+}
+
+.task-group + .task-group {
+    margin-top: 8px;
+}
+
+.task-group-recurring .list-day > svg {
+    color: hsl(var(--primary));
+}
+
+.list-day-count {
+    min-width: 17px;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: hsl(var(--muted));
+    font-size: 9px;
+    letter-spacing: 0;
+    text-align: center;
+}
+
 .list-day::after {
     height: 1px;
     flex: 1;
@@ -934,6 +956,57 @@ button,
     margin-right: auto;
     color: hsl(var(--subtle-foreground));
     font-size: 10.5px;
+}
+
+.recurring-complete-dialog {
+    width: min(calc(100vw - 32px), 450px);
+}
+
+.confirmation-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding-right: 24px;
+}
+
+.confirmation-icon {
+    position: relative;
+    display: grid;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid hsl(var(--primary) / 0.2);
+    border-radius: 11px;
+    background: hsl(var(--primary) / 0.08);
+    color: hsl(var(--primary));
+}
+
+.confirmation-icon-badge {
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    padding: 2px;
+    border-radius: 999px;
+    background: hsl(var(--card));
+    color: hsl(var(--subtle-foreground));
+    box-sizing: content-box;
+}
+
+.confirmation-note {
+    margin-top: 16px;
+    padding: 9px 11px;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-md);
+    background: hsl(var(--muted) / 0.38);
+    color: hsl(var(--muted-foreground));
+    font-size: 10.5px;
+    line-height: 1.55;
+}
+
+.confirmation-actions {
+    margin-top: 16px;
+    padding: 0;
 }
 
 @keyframes overlay-in {

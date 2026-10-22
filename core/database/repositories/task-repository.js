@@ -51,11 +51,17 @@ class TaskRepository {
         if (view === 'inbox') {
             conditions.push('(t.category_id IS NULL OR t.due_at IS NULL)')
         } else if (view === 'today') {
-            conditions.push('t.due_at >= ? AND t.due_at < ?')
-            parameters.push(ranges.todayStart, ranges.tomorrowStart)
+            conditions.push(`(
+                (t.due_at >= ? AND t.due_at < ?)
+                OR (t.recurrence_type != 'none' AND t.remind_at >= ? AND t.remind_at < ?)
+            )`)
+            parameters.push(ranges.todayStart, ranges.tomorrowStart, ranges.todayStart, ranges.tomorrowStart)
         } else if (view === 'upcoming') {
-            conditions.push('t.due_at >= ? AND t.due_at < ?')
-            parameters.push(ranges.todayStart, ranges.sevenDayEnd)
+            conditions.push(`(
+                (t.due_at >= ? AND t.due_at < ?)
+                OR (t.recurrence_type != 'none' AND t.remind_at >= ? AND t.remind_at < ?)
+            )`)
+            parameters.push(ranges.todayStart, ranges.sevenDayEnd, ranges.todayStart, ranges.sevenDayEnd)
         } else if (view === 'category') {
             conditions.push('t.category_id = ?')
             parameters.push(categoryId)
@@ -86,13 +92,31 @@ class TaskRepository {
     countByView(view, ranges) {
         if (view === 'today') {
             return this.database
-                .prepare("SELECT COUNT(*) AS count FROM tasks WHERE status = 'active' AND deleted_at IS NULL AND due_at >= ? AND due_at < ?")
-                .get(ranges.todayStart, ranges.tomorrowStart).count
+                .prepare(
+                    `SELECT COUNT(*) AS count
+                     FROM tasks
+                     WHERE status = 'active'
+                       AND deleted_at IS NULL
+                       AND (
+                           (due_at >= ? AND due_at < ?)
+                           OR (recurrence_type != 'none' AND remind_at >= ? AND remind_at < ?)
+                       )`
+                )
+                .get(ranges.todayStart, ranges.tomorrowStart, ranges.todayStart, ranges.tomorrowStart).count
         }
         if (view === 'upcoming') {
             return this.database
-                .prepare("SELECT COUNT(*) AS count FROM tasks WHERE status = 'active' AND deleted_at IS NULL AND due_at >= ? AND due_at < ?")
-                .get(ranges.todayStart, ranges.sevenDayEnd).count
+                .prepare(
+                    `SELECT COUNT(*) AS count
+                     FROM tasks
+                     WHERE status = 'active'
+                       AND deleted_at IS NULL
+                       AND (
+                           (due_at >= ? AND due_at < ?)
+                           OR (recurrence_type != 'none' AND remind_at >= ? AND remind_at < ?)
+                       )`
+                )
+                .get(ranges.todayStart, ranges.sevenDayEnd, ranges.todayStart, ranges.sevenDayEnd).count
         }
         if (view === 'inbox') {
             return this.database
