@@ -53,14 +53,32 @@ button,
 
 .app-shell {
     display: grid;
-    grid-template-columns: var(--sidebar-width) minmax(0, 1fr) var(--details-width);
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
     grid-template-rows: 100%;
     height: 100%;
     background: hsl(var(--background));
 }
 
-.app-shell.details-closed {
-    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+.workspace {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.workspace-body {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    overflow: hidden;
+}
+
+.workspace-body.details-open {
+    grid-template-columns: minmax(0, 1fr) var(--details-width);
 }
 
 .sidebar {
@@ -197,17 +215,19 @@ button,
 .main-area {
     display: grid;
     min-width: 0;
-    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
     background: hsl(var(--card) / 0.54);
+    overflow: hidden;
 }
 
 .topbar {
     display: flex;
-    min-height: 76px;
+    min-height: 78px;
     align-items: center;
     justify-content: space-between;
     gap: 18px;
-    padding: 17px 26px 15px;
+    padding: 16px 26px 15px;
     border-bottom: 1px solid hsl(var(--border));
     -webkit-app-region: drag;
 }
@@ -216,8 +236,7 @@ button,
 .topbar input,
 .topbar select,
 .topbar .search-box,
-.topbar-actions,
-.window-controls {
+.topbar-actions {
     -webkit-app-region: no-drag;
 }
 
@@ -251,25 +270,56 @@ button,
     display: flex;
     min-width: 0;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+}
+
+.window-titlebar {
+    position: relative;
+    z-index: 40;
+    display: flex;
+    height: var(--titlebar-height);
+    flex: 0 0 var(--titlebar-height);
+    align-items: stretch;
+    justify-content: space-between;
+    border-bottom: 1px solid hsl(var(--border));
+    background: hsl(var(--muted) / 0.34);
+    -webkit-app-region: drag;
+}
+
+.window-drag-region {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding-left: 14px;
+    color: hsl(var(--subtle-foreground));
+    font-size: 8px;
+    font-weight: 650;
+    letter-spacing: 0.16em;
+    user-select: none;
+}
+
+.window-drag-mark {
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
 }
 
 .window-controls {
     display: flex;
-    height: 34px;
+    height: var(--titlebar-height);
     align-items: center;
-    margin: -1px -10px -1px 4px;
-    border-left: 1px solid hsl(var(--border));
-    padding-left: 4px;
+    -webkit-app-region: no-drag;
 }
 
 .window-control {
     display: grid;
-    width: 34px;
-    height: 32px;
+    width: 46px;
+    height: var(--titlebar-height);
     place-items: center;
     border: 0;
-    border-radius: 6px;
+    border-radius: 0;
     background: transparent;
     color: hsl(var(--muted-foreground));
     cursor: pointer;
@@ -290,7 +340,7 @@ button,
 
 .search-box {
     position: relative;
-    width: min(270px, 30vw);
+    width: min(300px, 32vw);
 }
 
 .search-box svg {
@@ -541,10 +591,12 @@ button,
 .details-panel {
     display: grid;
     min-width: 0;
+    min-height: 0;
     grid-template-rows: auto minmax(0, 1fr);
     background: hsl(var(--card));
     border-left: 1px solid hsl(var(--border));
     box-shadow: -12px 0 32px hsl(var(--foreground) / 0.025);
+    overflow: hidden;
     animation: details-in 180ms ease-out;
 }
 
@@ -1366,12 +1418,15 @@ button,
 
 @media (max-width: 1020px) {
     .app-shell {
-        grid-template-columns: 206px minmax(0, 1fr) 326px;
+        grid-template-columns: 206px minmax(0, 1fr);
+    }
+
+    .workspace-body.details-open {
+        grid-template-columns: minmax(0, 1fr) 326px;
     }
 
     .topbar {
-        padding-right: 18px;
-        padding-left: 18px;
+        padding: 16px 18px 15px;
     }
 
     .task-list {
@@ -1380,18 +1435,18 @@ button,
     }
 }
 
-@media (max-width: 1240px) {
-    .app-shell:not(.details-closed) .topbar {
+@media (max-width: 920px) {
+    .workspace.details-open .topbar {
         flex-wrap: wrap;
         gap: 10px;
     }
 
-    .app-shell:not(.details-closed) .topbar-actions {
+    .workspace.details-open .topbar-actions {
         width: 100%;
         justify-content: flex-end;
     }
 
-    .app-shell:not(.details-closed) .search-box {
+    .workspace.details-open .search-box {
         width: min(310px, 48vw);
     }
 }
@@ -1401,10 +1456,14 @@ button,
         grid-template-columns: 196px minmax(0, 1fr);
     }
 
+    .workspace-body.details-open {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .details-panel {
         position: fixed;
         z-index: 30;
-        top: var(--topbar-height, 76px);
+        top: calc(var(--titlebar-height) + var(--topbar-height, 78px));
         right: 0;
         bottom: 0;
         width: min(380px, calc(100vw - 50px));

@@ -173,7 +173,8 @@ function registerHandlers(context) {
     handle('app:info', () => ({
         name: '日序 Daymark',
         version: app.getVersion(),
-        electron: process.versions.electron
+        electron: process.versions.electron,
+        appUserModelId: process.platform === 'win32' ? '日序' : null
     }))
 
     handle('window:quick-add', () => {
@@ -222,6 +223,18 @@ function registerHandlers(context) {
         }
         window.close()
         return { closing: true }
+    })
+    handle('window:open-devtools', (event) => {
+        const window = BrowserWindow.fromWebContents(event.sender)
+        if (!window) {
+            throw new Error('窗口不存在')
+        }
+        if (window.webContents.isDevToolsOpened()) {
+            window.webContents.devToolsWebContents?.focus()
+        } else {
+            window.webContents.openDevTools({ mode: 'detach', activate: true })
+        }
+        return { opened: true }
     })
 
     return () => {

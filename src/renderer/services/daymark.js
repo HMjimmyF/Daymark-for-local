@@ -57,7 +57,8 @@ export const api = {
         minimize: () => unwrap(getApi().windows.minimize()),
         toggleMaximize: () => unwrap(getApi().windows.toggleMaximize()),
         close: () => unwrap(getApi().windows.close()),
-        getState: () => unwrap(getApi().windows.getState())
+        getState: () => unwrap(getApi().windows.getState()),
+        openDevTools: () => unwrap(getApi().windows.openDevTools())
     },
     app: {
         info: () => unwrap(getApi().app.info())

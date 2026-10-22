@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Archive, Bell, Database, Download, FolderOpen, Keyboard, Palette, RefreshCw, ShieldCheck } from 'lucide-react'
+import { Archive, Bell, Code2, Database, Download, FolderOpen, Keyboard, Palette, RefreshCw, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
@@ -127,6 +127,18 @@ export function SettingsPage({ settings, onSettingsChanged, onReload }) {
         }
     }
 
+    const openDevTools = async () => {
+        setBusy('devtools')
+        try {
+            await api.windows.openDevTools()
+            showToast('开发者工具已打开')
+        } catch (error) {
+            showToast(error.message, 'error')
+        } finally {
+            setBusy('')
+        }
+    }
+
     return (
         <div className="settings-page">
             <section className="settings-section">
@@ -213,6 +225,17 @@ export function SettingsPage({ settings, onSettingsChanged, onReload }) {
                         立即检查
                     </Button>
                 </div>
+            </section>
+
+            <section className="settings-section">
+                <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Code2 size={16} /> 开发者工具
+                </h3>
+                <p className="settings-section-copy">用于检查界面元素、网络与运行日志。开发者工具会在独立窗口中打开。</p>
+                <Button variant="secondary" onClick={openDevTools} disabled={busy === 'devtools'}>
+                    <Code2 size={14} />
+                    {busy === 'devtools' ? '正在打开…' : '打开开发者工具'}
+                </Button>
             </section>
 
             <section className="settings-section">

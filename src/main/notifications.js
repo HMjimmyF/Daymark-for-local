@@ -6,7 +6,7 @@ function createNotifier({ windowManager }) {
             return
         }
         const notification = new Notification({
-            title: options.title,
+            title: '日序',
             body: options.body,
             icon: windowManager.getIcon(),
             silent: false

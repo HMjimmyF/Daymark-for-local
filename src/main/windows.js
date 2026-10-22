@@ -122,9 +122,10 @@ class WindowManager {
             alwaysOnTop: true,
             skipTaskbar: true,
             title: '快速添加 · 日序',
-            backgroundColor: '#fbfbfa',
+            backgroundColor: '#000',
             icon: this.getIcon(),
-            webPreferences: this.getWebPreferences()
+            webPreferences: this.getWebPreferences(),
+            transparent: true
         })
         this.secureWindow(this.quickAddWindow)
         this.loadRenderer(this.quickAddWindow, 'quick-add')

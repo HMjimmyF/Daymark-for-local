@@ -30,6 +30,7 @@
     --radius-lg: 14px;
     --sidebar-width: 224px;
     --details-width: 360px;
+    --titlebar-height: 36px;
     --duration: 150ms;
     --font-sans: 'Segoe UI Variable', 'Segoe UI', 'Microsoft YaHei UI', sans-serif;
 }

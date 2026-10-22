@@ -46,7 +46,8 @@ contextBridge.exposeInMainWorld('daymark', {
         minimize: () => invoke('window:minimize'),
         toggleMaximize: () => invoke('window:toggle-maximize'),
         close: () => invoke('window:close'),
-        getState: () => invoke('window:get-state')
+        getState: () => invoke('window:get-state'),
+        openDevTools: () => invoke('window:open-devtools')
     },
     app: {
         info: () => invoke('app:info')

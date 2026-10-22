@@ -17,6 +17,14 @@ const { ShortcutManager } = require('./shortcuts')
 const { createNotifier } = require('./notifications')
 const { applyContentSecurityPolicy } = require('./protocol')
 
+const APP_NAME = '日序'
+const APP_USER_MODEL_ID = '日序'
+
+app.setName(APP_NAME)
+if (process.platform === 'win32') {
+    app.setAppUserModelId(APP_USER_MODEL_ID)
+}
+
 Menu.setApplicationMenu(null)
 
 const dataDirectoryArgument = process.argv.find((argument) => argument.startsWith('--daymark-data-dir='))

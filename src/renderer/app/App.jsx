@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Topbar } from '@/components/layout/Topbar'
+import { WindowTitlebar } from '@/components/layout/WindowTitlebar'
 import { TaskList } from '@/components/task/TaskList'
 import { TaskDetailsPanel } from '@/components/task/TaskDetailsPanel'
 import { TaskCreateDialog } from '@/components/dialog/TaskCreateDialog'
@@ -106,11 +107,14 @@ export function App() {
         }
     }
 
+    const showDetails = detailsOpen && activeView !== 'settings'
+
     return (
         <>
-            <div className={`app-shell ${detailsOpen && activeView !== 'settings' ? '' : 'details-closed'}`}>
+            <div className="app-shell">
                 <Sidebar categories={appData.categories} counts={appData.counts} />
-                <main className="main-area">
+                <section className={`workspace ${showDetails ? 'details-open' : ''}`}>
+                    <WindowTitlebar />
                     <Topbar category={selectedCategory} />
                     {appData.error && (
                         <div className="error-banner" role="alert">
@@ -118,25 +122,33 @@ export function App() {
                             <span>{appData.error}</span>
                         </div>
                     )}
-                    <div className="content-scroll">
-                        {activeView === 'settings' ? (
-                            <SettingsPage settings={appData.settings} onSettingsChanged={() => appData.loadReferenceData()} onReload={appData.reloadAll} />
-                        ) : (
-                            <TaskList
-                                tasks={appData.tasks}
-                                loading={appData.loading}
-                                view={activeView}
-                                search={search}
-                                selectedTaskId={selectedTaskId}
-                                onCreate={() => setCreateOpen(true)}
-                                onOpen={(task) => openTask(task.id)}
-                                onComplete={completeTask}
-                                onRemove={removeTask}
-                            />
-                        )}
+                    <div className={`workspace-body ${showDetails ? 'details-open' : ''}`}>
+                        <main className="main-area">
+                            <div className="content-scroll">
+                                {activeView === 'settings' ? (
+                                    <SettingsPage
+                                        settings={appData.settings}
+                                        onSettingsChanged={() => appData.loadReferenceData()}
+                                        onReload={appData.reloadAll}
+                                    />
+                                ) : (
+                                    <TaskList
+                                        tasks={appData.tasks}
+                                        loading={appData.loading}
+                                        view={activeView}
+                                        search={search}
+                                        selectedTaskId={selectedTaskId}
+                                        onCreate={() => setCreateOpen(true)}
+                                        onOpen={(task) => openTask(task.id)}
+                                        onComplete={completeTask}
+                                        onRemove={removeTask}
+                                    />
+                                )}
+                            </div>
+                        </main>
+                        {showDetails && <TaskDetailsPanel taskId={selectedTaskId} categories={appData.categories} />}
                     </div>
-                </main>
-                {detailsOpen && activeView !== 'settings' && <TaskDetailsPanel taskId={selectedTaskId} categories={appData.categories} />}
+                </section>
             </div>
 
             <TaskCreateDialog open={createOpen} categories={appData.categories} onClose={() => setCreateOpen(false)} onCreated={(task) => openTask(task.id)} />
