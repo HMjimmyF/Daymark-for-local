@@ -74,7 +74,7 @@ class ReminderService {
             intervalMs: this.intervalMs,
             lastCheckedAt: this.lastCheckedAt,
             lastDeliveredCount: this.lastDeliveredCount,
-            exitedAppLimitation: '应用完全退出后，Electron 定时器无法继续发送提醒。'
+            exitedAppLimitation: '应用完全退出后，定时器无法继续发送提醒。'
         }
     }
 }

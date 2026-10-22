@@ -229,17 +229,6 @@ export function SettingsPage({ settings, onSettingsChanged, onReload }) {
 
             <section className="settings-section">
                 <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Code2 size={16} /> 开发者工具
-                </h3>
-                <p className="settings-section-copy">用于检查界面元素、网络与运行日志。开发者工具会在独立窗口中打开。</p>
-                <Button variant="secondary" onClick={openDevTools} disabled={busy === 'devtools'}>
-                    <Code2 size={14} />
-                    {busy === 'devtools' ? '正在打开…' : '打开开发者工具'}
-                </Button>
-            </section>
-
-            <section className="settings-section">
-                <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <Database size={16} /> 本地数据
                 </h3>
                 <p className="settings-section-copy">任务只保存在 SQLite 数据库中。升级程序不会覆盖这里的用户数据。</p>
@@ -282,6 +271,17 @@ export function SettingsPage({ settings, onSettingsChanged, onReload }) {
                         <Download size={14} /> 导出 CSV
                     </Button>
                 </div>
+            </section>
+
+            <section className="settings-section">
+                <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Code2 size={16} /> 开发者工具
+                </h3>
+                <p className="settings-section-copy">用于检查界面元素、网络与运行日志。开发者工具会在独立窗口中打开。</p>
+                <Button variant="secondary" onClick={openDevTools} disabled={busy === 'devtools'}>
+                    <Code2 size={14} />
+                    {busy === 'devtools' ? '正在打开…' : '打开开发者工具'}
+                </Button>
             </section>
 
             <section className="settings-section" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
