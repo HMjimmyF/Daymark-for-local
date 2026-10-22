@@ -47,7 +47,7 @@ yarn check:native
 
 Yarn 1.22 把裸命令 `yarn check` 保留为内置锁文件检查，因此应使用 `yarn run check` 执行项目的格式、静态检查和全部测试。`yarn test` 在 Electron 的 Node 运行时中执行 Vitest，因此测试使用与应用相同的原生 SQLite ABI。测试只创建临时数据库，不读取真实用户数据。
 
-## 生产构建与 Windows ZIP
+## 生产构建、快捷 ZIP 与安装包
 
 ```powershell
 yarn build
@@ -57,7 +57,11 @@ yarn dist:win
 
 - `yarn build` 生成 `dist/main`、`dist/preload` 和 `dist/renderer`。
 - `yarn package:win` 生成 `release/win-unpacked/日序.exe`。
-- `yarn dist:win` 生成 `release/Daymark-1.0.0-win-x64.zip` 和 SHA-256 值。
+- `yarn dist:win` 同时生成：
+    - 快捷 ZIP：`release/Daymark-1.0.0-win-x64.zip`
+    - Windows 安装包：`release/Daymark-Setup-1.0.0-x64.exe`
+
+安装包允许选择安装目录，并创建桌面和开始菜单快捷方式；卸载应用不会删除本地任务数据库和备份。
 
 ## 快捷键
 

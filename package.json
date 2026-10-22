@@ -21,7 +21,7 @@
         "check:native": "cross-env ELECTRON_RUN_AS_NODE=1 electron scripts/smoke-native.js",
         "icons": "node scripts/generate-icons.js",
         "package:win": "yarn native:electron && yarn build && electron-builder --win dir",
-        "dist:win": "yarn native:electron && yarn build && electron-builder --win dir && node scripts/zip-release.js"
+        "dist:win": "yarn native:electron && yarn build && electron-builder --win && node scripts/zip-release.js"
     },
     "dependencies": {
         "@radix-ui/react-dialog": "1.1.6",
@@ -90,9 +90,28 @@
                     "arch": [
                         "x64"
                     ]
+                },
+                {
+                    "target": "nsis",
+                    "arch": [
+                        "x64"
+                    ]
                 }
             ],
             "artifactName": "Daymark-${version}-${arch}.${ext}"
+        },
+        "nsis": {
+            "oneClick": false,
+            "perMachine": false,
+            "differentialPackage": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true,
+            "createStartMenuShortcut": true,
+            "shortcutName": "日序",
+            "uninstallDisplayName": "日序 ${version}",
+            "deleteAppDataOnUninstall": false,
+            "runAfterFinish": true,
+            "artifactName": "Daymark-Setup-${version}-${arch}.${ext}"
         }
     },
     "engines": {

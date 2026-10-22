@@ -33,9 +33,14 @@ ZIP 包不包含数据库、备份、导出文件、日志或用户设置。
 ## 发布包
 
 - 目录版：`release/win-unpacked/日序.exe`
-- 便携包：`release/Daymark-1.0.0-win-x64.zip`
-- ZIP 大小：130,127,909 字节
-- SHA-256：`969BA1A967FD550BF7EA8C8C07F95A976E08B80F057FC1C7AE19A2050E9AC46C`
+- 快捷 ZIP：`release/Daymark-1.0.0-win-x64.zip`
+    - 大小：130,191,987 字节
+    - SHA-256：`8E7B5A4E0F62F0BB557FA987B61E22EB60527BC44BFB2DB1619E1E99E86D5CE9`
+- Windows 安装包：`release/Daymark-Setup-1.0.0-x64.exe`
+    - 大小：89,578,211 字节
+    - SHA-256：`0B8D1DDB70C24513C4FA7F5149D8736F277287CD1E492D2AD2F010CBC44E31CC`
+    - 支持选择安装目录，创建桌面和开始菜单快捷方式
+    - 卸载时保留用户数据库与备份
 
 ## 安全说明
 
@@ -51,4 +56,4 @@ ZIP 包不包含数据库、备份、导出文件、日志或用户设置。
 
 ## 签名状态
 
-当前构建未进行代码签名。Windows SmartScreen 可能提示“未知发布者”。本项目不声称已通过 SmartScreen 验证。
+快捷 ZIP 和安装包均未进行代码签名。Windows SmartScreen 可能提示“未知发布者”。本项目不声称已通过 SmartScreen 验证。
