@@ -117,12 +117,7 @@ export function TaskCreateDialog({ open, categories, onClose, onCreated }) {
                             <div className="form-section due-section">
                                 <div>
                                     <Label htmlFor="new-task-due">完成截止时间（可选）</Label>
-                                    <DateTimePicker
-                                        id="new-task-due"
-                                        value={form.dueAt}
-                                        onChange={(dueAt) => update('dueAt', dueAt)}
-                                        placeholder="例如：10月24日 18:00"
-                                    />
+                                    <DateTimePicker id="new-task-due" value={form.dueAt} onChange={(dueAt) => update('dueAt', dueAt)} />
                                     <p className="field-hint">用于列表排序和逾期标识，不会自动发送通知。</p>
                                 </div>
                             </div>

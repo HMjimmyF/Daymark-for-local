@@ -81,7 +81,6 @@ export function RecurrenceFields({ idPrefix, value, onChange }) {
                         id={`${idPrefix}-recurrence-until`}
                         value={value.recurrenceUntil}
                         onChange={(recurrenceUntil) => onChange({ recurrenceUntil })}
-                        placeholder="不设置则长期重复"
                     />
                     <p className="field-hint">最后一天仍会提醒，之后自动停止。留空表示一直重复。</p>
                 </div>

@@ -46,13 +46,8 @@ export function ReminderFields({ idPrefix, value, onChange }) {
             {!recurring ? (
                 <div>
                     <Label htmlFor={`${idPrefix}-remind`}>日期与时间</Label>
-                    <DateTimePicker
-                        id={`${idPrefix}-remind`}
-                        value={value.remindAt}
-                        onChange={(remindAt) => onChange({ remindAt })}
-                        placeholder="例如：10月24日 09:00"
-                    />
-                    <p className="field-hint">选择完整日期后点击“确定”才会生效。</p>
+                    <DateTimePicker id={`${idPrefix}-remind`} value={value.remindAt} onChange={(remindAt) => onChange({ remindAt })} />
+                    <p className="field-hint">选择完整日期和时间后立即生效。</p>
                 </div>
             ) : (
                 <>

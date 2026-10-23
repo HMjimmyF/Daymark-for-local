@@ -191,11 +191,11 @@ export function TaskDetailsPanel({ taskId, categories, onCompleteTask }) {
 
                 <div className="field-grid">
                     <RecurrenceFields idPrefix="detail" value={form} onChange={updateRecurrence} />
-                    <ReminderFields idPrefix="detail" value={form} onChange={updateRecurrence} />
+                    <ReminderFields key={task.id} idPrefix="detail" value={form} onChange={updateRecurrence} />
                     <div className="form-section due-section">
                         <div>
                             <Label htmlFor="detail-due">完成截止时间（可选）</Label>
-                            <DateTimePicker id="detail-due" value={form.dueAt} onChange={(dueAt) => update('dueAt', dueAt)} placeholder="选择日期和时间" />
+                            <DateTimePicker key={task.id} id="detail-due" value={form.dueAt} onChange={(dueAt) => update('dueAt', dueAt)} />
                             <p className="field-hint">用于列表排序和逾期标识，不会自动发送通知。</p>
                         </div>
                     </div>
