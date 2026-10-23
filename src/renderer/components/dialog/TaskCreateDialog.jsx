@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogLayout } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -79,94 +79,91 @@ export function TaskCreateDialog({ open, categories, onClose, onCreated }) {
 
     return (
         <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
-            <DialogContent className="task-create-dialog">
-                <div className="dialog-header task-create-header">
-                    <div>
-                        <DialogTitle className="dialog-title">添加新任务</DialogTitle>
-                        <DialogDescription className="dialog-description">先写下要做的事，再按需安排提醒、重复和截止时间。</DialogDescription>
-                    </div>
-                </div>
-                <form onSubmit={submit} className="task-create-form">
-                    <div className="task-create-scroll">
-                        <div className="form-grid">
+            <DialogContent layout className="task-create-dialog">
+                <DialogLayout
+                    title="添加新任务"
+                    description="先写下要做的事，再按需安排提醒、重复和截止时间。"
+                    footer={
+                        <>
+                            <span className="task-create-required">标题为唯一必填项</span>
+                            <Button type="button" variant="ghost" onClick={onClose}>
+                                取消
+                            </Button>
+                            <Button type="submit" form="task-create-form" disabled={saving}>
+                                {saving ? '正在添加…' : '添加任务'}
+                            </Button>
+                        </>
+                    }
+                >
+                    <form id="task-create-form" onSubmit={submit} className="form-grid">
+                        <div>
+                            <Label htmlFor="new-task-title">任务标题</Label>
+                            <Input
+                                id="new-task-title"
+                                autoFocus
+                                maxLength={200}
+                                value={form.title}
+                                onChange={(event) => update('title', event.target.value)}
+                                placeholder="接下来要做什么？"
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="new-task-description">描述（可选）</Label>
+                            <Textarea
+                                id="new-task-description"
+                                maxLength={5000}
+                                value={form.description}
+                                onChange={(event) => update('description', event.target.value)}
+                                placeholder="补充上下文、链接或验收条件"
+                            />
+                        </div>
+
+                        <RecurrenceFields idPrefix="new-task" value={form} onChange={updateRecurrence} />
+                        <ReminderFields idPrefix="new-task" value={form} onChange={updateRecurrence} />
+
+                        <div className="form-section due-section">
                             <div>
-                                <Label htmlFor="new-task-title">任务标题</Label>
-                                <Input
-                                    id="new-task-title"
-                                    autoFocus
-                                    maxLength={200}
-                                    value={form.title}
-                                    onChange={(event) => update('title', event.target.value)}
-                                    placeholder="接下来要做什么？"
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="new-task-description">描述（可选）</Label>
-                                <Textarea
-                                    id="new-task-description"
-                                    maxLength={5000}
-                                    value={form.description}
-                                    onChange={(event) => update('description', event.target.value)}
-                                    placeholder="补充上下文、链接或验收条件"
-                                />
-                            </div>
-
-                            <RecurrenceFields idPrefix="new-task" value={form} onChange={updateRecurrence} />
-                            <ReminderFields idPrefix="new-task" value={form} onChange={updateRecurrence} />
-
-                            <div className="form-section due-section">
-                                <div>
-                                    <Label htmlFor="new-task-due">完成截止时间（可选）</Label>
-                                    <DateTimePicker id="new-task-due" value={form.dueAt} onChange={(dueAt) => update('dueAt', dueAt)} />
-                                    <p className="field-hint">用于列表排序和逾期标识，不会自动发送通知。</p>
-                                </div>
-                            </div>
-
-                            <div className="form-row">
-                                <div>
-                                    <Label htmlFor="new-task-priority">优先级</Label>
-                                    <select
-                                        id="new-task-priority"
-                                        className="select"
-                                        value={form.priority}
-                                        onChange={(event) => update('priority', event.target.value)}
-                                    >
-                                        {PRIORITY_OPTIONS.map((option) => (
-                                            <option key={option.value} value={option.value}>
-                                                {option.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <Label htmlFor="new-task-category">分类</Label>
-                                    <select
-                                        id="new-task-category"
-                                        className="select"
-                                        value={form.categoryId}
-                                        onChange={(event) => update('categoryId', event.target.value)}
-                                    >
-                                        <option value="">无分类</option>
-                                        {categories.map((category) => (
-                                            <option key={category.id} value={category.id}>
-                                                {category.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
+                                <Label htmlFor="new-task-due">完成截止时间（可选）</Label>
+                                <DateTimePicker id="new-task-due" value={form.dueAt} onChange={(dueAt) => update('dueAt', dueAt)} />
+                                <p className="field-hint">用于列表排序和逾期标识，不会自动发送通知。</p>
                             </div>
                         </div>
-                    </div>
-                    <div className="dialog-footer task-create-footer">
-                        <span className="task-create-required">标题为唯一必填项</span>
-                        <Button type="button" variant="ghost" onClick={onClose}>
-                            取消
-                        </Button>
-                        <Button type="submit" disabled={saving}>
-                            {saving ? '正在添加…' : '添加任务'}
-                        </Button>
-                    </div>
-                </form>
+
+                        <div className="form-row">
+                            <div>
+                                <Label htmlFor="new-task-priority">优先级</Label>
+                                <select
+                                    id="new-task-priority"
+                                    className="select"
+                                    value={form.priority}
+                                    onChange={(event) => update('priority', event.target.value)}
+                                >
+                                    {PRIORITY_OPTIONS.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <Label htmlFor="new-task-category">分类</Label>
+                                <select
+                                    id="new-task-category"
+                                    className="select"
+                                    value={form.categoryId}
+                                    onChange={(event) => update('categoryId', event.target.value)}
+                                >
+                                    <option value="">无分类</option>
+                                    {categories.map((category) => (
+                                        <option key={category.id} value={category.id}>
+                                            {category.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </DialogLayout>
             </DialogContent>
         </Dialog>
     )

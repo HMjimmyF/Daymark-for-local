@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { CalendarDays, CheckCircle2, Inbox, Plus, Search, Settings } from 'lucide-react'
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogLayout, DialogTitle } from '@/components/ui/dialog'
 import { api } from '@/services/daymark'
 import { useAppStore } from '@/stores/app-store'
 import { formatShortDate } from '@/lib/date'
@@ -86,35 +86,44 @@ export function CommandPalette() {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="command" showClose={false} onOpenAutoFocus={() => inputRef.current?.focus()}>
-                <DialogTitle style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>搜索与命令</DialogTitle>
-                <DialogDescription style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
-                    搜索本地任务，或快速前往常用视图。
-                </DialogDescription>
-                <div className="command-search">
-                    <Search size={17} color="hsl(var(--subtle-foreground))" />
-                    <input
-                        ref={inputRef}
-                        value={query}
-                        onChange={(event) => setQuery(event.target.value)}
-                        onKeyDown={(event) => {
-                            if (event.key === 'ArrowDown') {
-                                event.preventDefault()
-                                setActiveIndex((index) => Math.min(actions.length - 1, index + 1))
-                            } else if (event.key === 'ArrowUp') {
-                                event.preventDefault()
-                                setActiveIndex((index) => Math.max(0, index - 1))
-                            } else if (event.key === 'Enter') {
-                                event.preventDefault()
-                                activate()
-                            }
-                        }}
-                        placeholder="搜索任务或输入命令…"
-                        aria-label="搜索任务或命令"
-                    />
-                    <span style={{ color: 'hsl(var(--subtle-foreground))', fontSize: 10 }}>ESC 关闭</span>
-                </div>
-                <div className="command-list">
+            <DialogContent layout className="command" showClose={false} onOpenAutoFocus={() => inputRef.current?.focus()}>
+                <DialogLayout
+                    headerClassName="dialog-layout-header-plain"
+                    bodyClassName="command-list"
+                    header={
+                        <>
+                            <DialogTitle style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
+                                搜索与命令
+                            </DialogTitle>
+                            <DialogDescription style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
+                                搜索本地任务，或快速前往常用视图。
+                            </DialogDescription>
+                            <div className="command-search">
+                                <Search size={17} color="hsl(var(--subtle-foreground))" />
+                                <input
+                                    ref={inputRef}
+                                    value={query}
+                                    onChange={(event) => setQuery(event.target.value)}
+                                    onKeyDown={(event) => {
+                                        if (event.key === 'ArrowDown') {
+                                            event.preventDefault()
+                                            setActiveIndex((index) => Math.min(actions.length - 1, index + 1))
+                                        } else if (event.key === 'ArrowUp') {
+                                            event.preventDefault()
+                                            setActiveIndex((index) => Math.max(0, index - 1))
+                                        } else if (event.key === 'Enter') {
+                                            event.preventDefault()
+                                            activate()
+                                        }
+                                    }}
+                                    placeholder="搜索任务或输入命令…"
+                                    aria-label="搜索任务或命令"
+                                />
+                                <span style={{ color: 'hsl(var(--subtle-foreground))', fontSize: 10 }}>ESC 关闭</span>
+                            </div>
+                        </>
+                    }
+                >
                     {!query && (
                         <>
                             <div className="command-section-label">快速操作</div>
@@ -172,7 +181,7 @@ export function CommandPalette() {
                             {searchError || '没有找到匹配任务'}
                         </div>
                     )}
-                </div>
+                </DialogLayout>
             </DialogContent>
         </Dialog>
     )

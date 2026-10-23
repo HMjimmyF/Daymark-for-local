@@ -119,10 +119,19 @@ button,
     display: flex;
     flex-direction: column;
     min-width: 0;
+    min-height: 0;
     padding: 20px 14px 14px;
+    overflow: hidden;
     background: hsl(var(--muted) / 0.58);
     border-right: 1px solid hsl(var(--border));
     -webkit-app-region: drag;
+}
+
+.sidebar-scroll {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .sidebar button,
@@ -133,6 +142,7 @@ button,
 
 .brand {
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
     gap: 10px;
     padding: 2px 10px 22px;
@@ -170,6 +180,12 @@ button,
 .nav-section {
     display: grid;
     gap: 2px;
+}
+
+.category-nav {
+    min-height: 0;
+    flex: 1;
+    grid-template-rows: auto minmax(0, 1fr);
 }
 
 .nav-heading {
@@ -240,6 +256,7 @@ button,
 }
 
 .sidebar-footer {
+    flex: 0 0 auto;
     margin-top: auto;
     padding-top: 12px;
     border-top: 1px solid hsl(var(--border));
@@ -916,40 +933,64 @@ button,
     transform: translateX(-50%);
 }
 
-.task-create-dialog {
-    display: grid;
-    width: min(calc(100vw - 32px), 620px);
-    max-height: min(88vh, 760px);
-    grid-template-rows: auto minmax(0, 1fr);
+.dialog-content-layout {
+    display: flex;
+    flex-direction: column;
     padding: 0;
     overflow: hidden;
 }
 
-.task-create-header {
-    margin: 0;
+.dialog-layout {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+}
+
+.dialog-layout-header {
+    flex: 0 0 auto;
     padding: 20px 54px 17px 22px;
     border-bottom: 1px solid hsl(var(--border));
     background: hsl(var(--card));
 }
 
-.task-create-form {
-    display: grid;
-    min-height: 0;
-    grid-template-rows: minmax(0, 1fr) auto;
+.dialog-layout-header .dialog-header {
+    margin-bottom: 0;
 }
 
-.task-create-scroll {
+.dialog-layout-header-plain {
+    padding: 0;
+    border-bottom: 0;
+    background: transparent;
+}
+
+.dialog-layout-body {
     min-height: 0;
-    padding: 18px 22px 22px;
+    flex: 1;
+    padding: 18px 22px;
     overflow-y: auto;
     overscroll-behavior: contain;
 }
 
-.task-create-footer {
-    margin: 0;
+.dialog-layout-body.command-list {
+    max-height: none;
+    padding: 6px;
+}
+
+.dialog-layout-footer {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
     padding: 13px 22px;
     border-top: 1px solid hsl(var(--border));
     background: hsl(var(--card) / 0.96);
+}
+
+.task-create-dialog {
+    width: min(calc(100vw - 32px), 620px);
+    max-height: min(88vh, 760px);
 }
 
 .task-create-required {
@@ -966,7 +1007,6 @@ button,
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    padding-right: 24px;
 }
 
 .confirmation-icon {
@@ -994,7 +1034,6 @@ button,
 }
 
 .confirmation-note {
-    margin-top: 16px;
     padding: 9px 11px;
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius-md);
@@ -1002,11 +1041,6 @@ button,
     color: hsl(var(--muted-foreground));
     font-size: 10.5px;
     line-height: 1.55;
-}
-
-.confirmation-actions {
-    margin-top: 16px;
-    padding: 0;
 }
 
 @keyframes overlay-in {
@@ -1872,12 +1906,12 @@ button,
         width: calc(100% - 26px);
     }
 
-    .task-create-scroll {
+    .dialog-layout-body {
         padding-right: 16px;
         padding-left: 16px;
     }
 
-    .task-create-footer {
+    .dialog-layout-footer {
         padding-right: 16px;
         padding-left: 16px;
     }

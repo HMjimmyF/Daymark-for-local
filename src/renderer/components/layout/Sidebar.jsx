@@ -45,7 +45,7 @@ export function Sidebar({ categories, counts }) {
                 ))}
             </nav>
 
-            <nav className="nav-section" aria-label="分类">
+            <nav className="nav-section category-nav" aria-label="分类">
                 <div className="nav-heading">
                     <span>分类</span>
                     <button
@@ -58,23 +58,25 @@ export function Sidebar({ categories, counts }) {
                         <Plus size={14} />
                     </button>
                 </div>
-                {categories.map((category) => (
-                    <button
-                        type="button"
-                        key={category.id}
-                        className={`nav-item ${activeView === 'category' && categoryId === category.id ? 'active' : ''}`}
-                        onClick={() => navigate('category', category.id)}
-                    >
-                        <span className="category-dot" style={{ background: category.color || 'hsl(var(--primary))' }} />
-                        <span className="nav-label">{category.name}</span>
-                    </button>
-                ))}
-                {!categories.length && (
-                    <button type="button" className="nav-item" onClick={() => setCategoryManagerOpen(true)}>
-                        <Plus size={14} />
-                        <span className="nav-label">新建第一个分类</span>
-                    </button>
-                )}
+                <div className="sidebar-scroll">
+                    {categories.map((category) => (
+                        <button
+                            type="button"
+                            key={category.id}
+                            className={`nav-item ${activeView === 'category' && categoryId === category.id ? 'active' : ''}`}
+                            onClick={() => navigate('category', category.id)}
+                        >
+                            <span className="category-dot" style={{ background: category.color || 'hsl(var(--primary))' }} />
+                            <span className="nav-label">{category.name}</span>
+                        </button>
+                    ))}
+                    {!categories.length && (
+                        <button type="button" className="nav-item" onClick={() => setCategoryManagerOpen(true)}>
+                            <Plus size={14} />
+                            <span className="nav-label">新建第一个分类</span>
+                        </button>
+                    )}
+                </div>
             </nav>
 
             <div className="sidebar-footer">
