@@ -1003,6 +1003,25 @@ button,
     width: min(calc(100vw - 32px), 450px);
 }
 
+.reminder-action-dialog {
+    width: min(calc(100vw - 32px), 500px);
+}
+
+.reminder-action-description {
+    margin: 0;
+    color: hsl(var(--foreground));
+    font-size: 13px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.reminder-action-hint {
+    margin: 14px 0 0;
+    color: hsl(var(--subtle-foreground));
+    font-size: 11px;
+}
+
 .confirmation-heading {
     display: flex;
     align-items: flex-start;

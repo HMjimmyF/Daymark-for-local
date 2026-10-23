@@ -9,6 +9,7 @@ import { TaskCreateDialog } from '@/components/dialog/TaskCreateDialog'
 import { CommandPalette } from '@/components/dialog/CommandPalette'
 import { CategoryManagerDialog } from '@/components/dialog/CategoryManagerDialog'
 import { CompleteRecurringDialog } from '@/components/dialog/CompleteRecurringDialog'
+import { ReminderActionDialog } from '@/components/dialog/ReminderActionDialog'
 import { SettingsPage } from '@/components/settings/SettingsPage'
 import { useAppData } from '@/hooks/use-app-data'
 import { useTheme } from '@/hooks/use-theme'
@@ -56,6 +57,8 @@ export function App() {
     const openTask = useAppStore((state) => state.openTask)
     const showToast = useAppStore((state) => state.showToast)
     const [recurringCompletionTask, setRecurringCompletionTask] = useState(null)
+    const [reminderTask, setReminderTask] = useState(null)
+    const [reminderActionBusy, setReminderActionBusy] = useState(false)
 
     const appData = useAppData({ activeView, categoryId, search })
     const selectedCategory = useMemo(() => appData.categories.find((category) => category.id === categoryId), [appData.categories, categoryId])
@@ -73,15 +76,28 @@ export function App() {
         [navigate]
     )
 
-    useEffect(
-        () =>
-            api.onTaskOpen((payload) => {
-                if (payload?.id) {
-                    openTask(payload.id)
+    useEffect(() => {
+        let active = true
+        const unsubscribe = api.onTaskOpen(async (payload) => {
+            if (!payload?.id) {
+                return
+            }
+            try {
+                const task = await api.tasks.get(payload.id)
+                if (active) {
+                    setReminderTask(task)
                 }
-            }),
-        [openTask]
-    )
+            } catch (error) {
+                if (active) {
+                    showToast(error.message, 'error')
+                }
+            }
+        })
+        return () => {
+            active = false
+            unsubscribe()
+        }
+    }, [showToast])
 
     const toggleTaskStatus = async (task) => {
         try {
@@ -122,6 +138,79 @@ export function App() {
             showToast('任务已删除')
         } catch (error) {
             showToast(error.message, 'error')
+        }
+    }
+
+    const scheduleReminderSnooze = async (task) => {
+        try {
+            await api.tasks.update(task.id, { remindAt: new Date(Date.now() + 10 * 60 * 1000).toISOString() })
+            showToast('已设置十分钟后再次提醒')
+            return true
+        } catch (error) {
+            showToast(error.message, 'error')
+            return false
+        }
+    }
+
+    const dismissReminder = (task) => {
+        setReminderTask(null)
+        if (task?.recurrenceType === 'none') {
+            void scheduleReminderSnooze(task)
+        }
+    }
+
+    const completeReminderTask = async () => {
+        if (!reminderTask) {
+            return
+        }
+        setReminderActionBusy(true)
+        try {
+            await api.tasks.complete(reminderTask.id)
+            setReminderTask(null)
+            showToast('任务已完成')
+        } catch (error) {
+            showToast(error.message, 'error')
+        } finally {
+            setReminderActionBusy(false)
+        }
+    }
+
+    const openReminderDetails = async () => {
+        if (!reminderTask) {
+            return
+        }
+        const task = reminderTask
+        setReminderActionBusy(true)
+        try {
+            if (task.recurrenceType === 'none') {
+                const snoozed = await scheduleReminderSnooze(task)
+                if (!snoozed) {
+                    return
+                }
+            }
+            setReminderTask(null)
+            openTask(task.id)
+        } catch (error) {
+            showToast(error.message, 'error')
+        } finally {
+            setReminderActionBusy(false)
+        }
+    }
+
+    const snoozeReminderTask = async () => {
+        if (!reminderTask) {
+            return
+        }
+        const task = reminderTask
+        setReminderActionBusy(true)
+        try {
+            if (await scheduleReminderSnooze(task)) {
+                setReminderTask(null)
+            }
+        } catch (error) {
+            showToast(error.message, 'error')
+        } finally {
+            setReminderActionBusy(false)
         }
     }
 
@@ -177,6 +266,14 @@ export function App() {
                 onCreated={(task) => openTask(task.id)}
             />
             <CompleteRecurringDialog task={recurringCompletionTask} onCancel={() => setRecurringCompletionTask(null)} onConfirm={confirmRecurringCompletion} />
+            <ReminderActionDialog
+                task={reminderTask}
+                busy={reminderActionBusy}
+                onDismiss={() => dismissReminder(reminderTask)}
+                onComplete={completeReminderTask}
+                onSnooze={snoozeReminderTask}
+                onOpenDetails={openReminderDetails}
+            />
             <CommandPalette />
             <CategoryManagerDialog
                 open={categoryManagerOpen}
