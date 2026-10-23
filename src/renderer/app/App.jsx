@@ -169,7 +169,13 @@ export function App() {
                 </section>
             </div>
 
-            <TaskCreateDialog open={createOpen} categories={appData.categories} onClose={() => setCreateOpen(false)} onCreated={(task) => openTask(task.id)} />
+            <TaskCreateDialog
+                open={createOpen}
+                categories={appData.categories}
+                initialCategoryId={activeView === 'category' ? categoryId : null}
+                onClose={() => setCreateOpen(false)}
+                onCreated={(task) => openTask(task.id)}
+            />
             <CompleteRecurringDialog task={recurringCompletionTask} onCancel={() => setRecurringCompletionTask(null)} onConfirm={confirmRecurringCompletion} />
             <CommandPalette />
             <CategoryManagerDialog

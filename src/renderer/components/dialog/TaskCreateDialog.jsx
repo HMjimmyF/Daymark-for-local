@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Dialog, DialogContent, DialogLayout } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -25,16 +25,18 @@ const initialForm = {
     categoryId: ''
 }
 
-export function TaskCreateDialog({ open, categories, onClose, onCreated }) {
+export function TaskCreateDialog({ open, categories, initialCategoryId, onClose, onCreated }) {
     const [form, setForm] = useState(initialForm)
     const [saving, setSaving] = useState(false)
     const showToast = useAppStore((state) => state.showToast)
+    const wasOpen = useRef(false)
 
     useEffect(() => {
-        if (open) {
-            setForm(initialForm)
+        if (open && !wasOpen.current) {
+            setForm({ ...initialForm, categoryId: initialCategoryId || '' })
         }
-    }, [open])
+        wasOpen.current = open
+    }, [open, initialCategoryId])
 
     const update = (key, value) => setForm((current) => ({ ...current, [key]: value }))
     const updateRecurrence = (patch) =>
