@@ -181,6 +181,7 @@ export function TaskDetailsPanel({ taskId, categories, onCompleteTask }) {
                 />
                 <textarea
                     className="details-description"
+                    rows={2}
                     value={form.description}
                     maxLength={5000}
                     onChange={(event) => update('description', event.target.value)}

@@ -717,7 +717,7 @@ button,
 
 .details-description {
     width: 100%;
-    min-height: 82px;
+    min-height: 24px;
     margin-top: 7px;
     resize: vertical;
     border: 0;
