@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^node -v; yarn -v; npm -v; Get-ChildItem -Force \\| Select-Object Name$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
