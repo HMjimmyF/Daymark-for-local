@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 
 export const useAppStore = create((set, get) => ({
-    activeView: 'inbox',
+    activeView: 'today',
     categoryId: null,
     search: '',
     selectedTaskId: null,

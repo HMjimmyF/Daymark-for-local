@@ -3,9 +3,9 @@ import brandIcon from '@brand/brand-icon.svg'
 import { useAppStore } from '@/stores/app-store'
 
 const primaryViews = [
-    { id: 'inbox', label: '收集箱', icon: Inbox, shortcut: '1' },
-    { id: 'today', label: '今天', icon: CalendarDays, shortcut: '2' },
-    { id: 'upcoming', label: '未来 7 天', icon: CalendarRange, shortcut: '3' },
+    { id: 'today', label: '今天', icon: CalendarDays, shortcut: '1' },
+    { id: 'upcoming', label: '未来 7 天', icon: CalendarRange, shortcut: '2' },
+    { id: 'inbox', label: '收集箱', icon: Inbox, shortcut: '3' },
     { id: 'all', label: '全部待办', icon: ListTodo, shortcut: '4' },
     { id: 'completed', label: '已完成', icon: CheckCircle2, shortcut: '5' }
 ]

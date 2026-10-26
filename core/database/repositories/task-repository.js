@@ -30,6 +30,10 @@ function escapeLike(value) {
     return value.replace(/[\\%_]/g, '\\$&')
 }
 
+function inboxCondition(alias = '') {
+    return `(${alias}category_id IS NULL AND ${alias}due_at IS NULL AND ${alias}remind_at IS NULL)`
+}
+
 class TaskRepository {
     constructor(database) {
         this.database = database
@@ -50,7 +54,7 @@ class TaskRepository {
         }
 
         if (view === 'inbox') {
-            conditions.push('(t.category_id IS NULL OR t.due_at IS NULL)')
+            conditions.push(inboxCondition('t.'))
         } else if (view === 'today') {
             conditions.push('((t.due_at >= ? AND t.due_at < ?) OR (t.remind_at >= ? AND t.remind_at < ?))')
             parameters.push(ranges.todayStart, ranges.tomorrowStart, ranges.todayStart, ranges.tomorrowStart)
@@ -108,9 +112,8 @@ class TaskRepository {
                 .get(ranges.todayStart, ranges.sevenDayEnd, ranges.todayStart, ranges.sevenDayEnd).count
         }
         if (view === 'inbox') {
-            return this.database
-                .prepare("SELECT COUNT(*) AS count FROM tasks WHERE status = 'active' AND deleted_at IS NULL AND (category_id IS NULL OR due_at IS NULL)")
-                .get().count
+            const sql = `SELECT COUNT(*) AS count FROM tasks WHERE status = 'active' AND deleted_at IS NULL AND ${inboxCondition()}`
+            return this.database.prepare(sql).get().count
         }
         return this.database.prepare("SELECT COUNT(*) AS count FROM tasks WHERE status = 'active' AND deleted_at IS NULL").get().count
     }
