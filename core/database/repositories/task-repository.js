@@ -31,7 +31,7 @@ function escapeLike(value) {
 }
 
 function inboxCondition(alias = '') {
-    return `(${alias}category_id IS NULL AND ${alias}due_at IS NULL AND ${alias}remind_at IS NULL)`
+    return `(${alias}category_id IS NULL OR ${alias}remind_at IS NULL)`
 }
 
 class TaskRepository {

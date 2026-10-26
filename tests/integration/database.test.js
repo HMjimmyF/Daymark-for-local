@@ -97,19 +97,24 @@ describe('SQLite repositories and services', () => {
         expect(taskService.getCounts()).toMatchObject({ today: 2, upcoming: 4 })
     })
 
-    it('keeps only unscheduled and uncategorized tasks in the inbox', () => {
+    it('keeps tasks without a reminder time or without a category in the inbox', () => {
         const category = categoryService.create({ name: '工作', color: '#5B82F6' })
         const dueAt = new Date(2026, 9, 22, 18, 0, 0).toISOString()
         const remindAt = new Date(2026, 9, 22, 9, 0, 0).toISOString()
 
-        taskService.create({ title: '未安排未分类' })
-        taskService.create({ title: '已分类', categoryId: category.id })
-        taskService.create({ title: '已设截止时间', dueAt })
-        taskService.create({ title: '已设提醒时间', remindAt })
-        taskService.create({ title: '已分类且有提醒', categoryId: category.id, remindAt, recurrenceType: 'daily' })
+        taskService.create({ title: '未分类未提醒' })
+        taskService.create({ title: '已分类未提醒', categoryId: category.id })
+        taskService.create({ title: '未分类有提醒', remindAt })
+        taskService.create({ title: '未分类仅有截止时间', dueAt })
+        taskService.create({ title: '已分类有提醒', categoryId: category.id, remindAt, recurrenceType: 'daily' })
 
-        expect(taskService.list({ view: 'inbox' }).map((task) => task.title)).toEqual(['未安排未分类'])
-        expect(taskService.getCounts().inbox).toBe(1)
+        const inboxTitles = taskService
+            .list({ view: 'inbox' })
+            .map((task) => task.title)
+            .sort()
+
+        expect(inboxTitles).toEqual(['未分类仅有截止时间', '未分类有提醒', '未分类未提醒', '已分类未提醒'].sort())
+        expect(taskService.getCounts().inbox).toBe(4)
         expect(taskService.list({ view: 'all' })).toHaveLength(5)
     })
 
