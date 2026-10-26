@@ -76,18 +76,25 @@ describe('SQLite repositories and services', () => {
         expect(taskService.list({ view: 'upcoming' }).map((task) => task.title)).toEqual(['今天任务', '第七天任务'])
     })
 
-    it('includes recurring reminder times in today and upcoming ranges', () => {
+    it('includes one-time and recurring reminder times in today and upcoming ranges', () => {
         const todayAt9 = new Date(2026, 9, 22, 9, 0, 0).toISOString()
         const seventhDayAt9 = new Date(2026, 9, 28, 9, 0, 0).toISOString()
         const eighthDayAt9 = new Date(2026, 9, 29, 9, 0, 0).toISOString()
         taskService.create({ title: '今天重复提醒', remindAt: todayAt9, recurrenceType: 'daily' })
         taskService.create({ title: '第七天重复提醒', remindAt: seventhDayAt9, recurrenceType: 'weekly' })
         taskService.create({ title: '范围外重复提醒', remindAt: eighthDayAt9, recurrenceType: 'monthly' })
-        taskService.create({ title: '一次性提醒不进入日历视图', remindAt: todayAt9 })
+        taskService.create({ title: '今天一次性提醒', remindAt: todayAt9 })
+        taskService.create({ title: '第七天一次性提醒', remindAt: seventhDayAt9 })
+        taskService.create({ title: '范围外一次性提醒', remindAt: eighthDayAt9 })
 
-        expect(taskService.list({ view: 'today' }).map((task) => task.title)).toEqual(['今天重复提醒'])
-        expect(taskService.list({ view: 'upcoming' }).map((task) => task.title)).toEqual(['今天重复提醒', '第七天重复提醒'])
-        expect(taskService.getCounts()).toMatchObject({ today: 1, upcoming: 2 })
+        expect(taskService.list({ view: 'today' }).map((task) => task.title)).toEqual(['今天重复提醒', '今天一次性提醒'])
+        expect(taskService.list({ view: 'upcoming' }).map((task) => task.title)).toEqual([
+            '今天重复提醒',
+            '第七天重复提醒',
+            '今天一次性提醒',
+            '第七天一次性提醒'
+        ])
+        expect(taskService.getCounts()).toMatchObject({ today: 2, upcoming: 4 })
     })
 
     it('moves tasks to the inbox when deleting a category', () => {

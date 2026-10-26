@@ -52,16 +52,10 @@ class TaskRepository {
         if (view === 'inbox') {
             conditions.push('(t.category_id IS NULL OR t.due_at IS NULL)')
         } else if (view === 'today') {
-            conditions.push(`(
-                (t.due_at >= ? AND t.due_at < ?)
-                OR (t.recurrence_type != 'none' AND t.remind_at >= ? AND t.remind_at < ?)
-            )`)
+            conditions.push('((t.due_at >= ? AND t.due_at < ?) OR (t.remind_at >= ? AND t.remind_at < ?))')
             parameters.push(ranges.todayStart, ranges.tomorrowStart, ranges.todayStart, ranges.tomorrowStart)
         } else if (view === 'upcoming') {
-            conditions.push(`(
-                (t.due_at >= ? AND t.due_at < ?)
-                OR (t.recurrence_type != 'none' AND t.remind_at >= ? AND t.remind_at < ?)
-            )`)
+            conditions.push('((t.due_at >= ? AND t.due_at < ?) OR (t.remind_at >= ? AND t.remind_at < ?))')
             parameters.push(ranges.todayStart, ranges.sevenDayEnd, ranges.todayStart, ranges.sevenDayEnd)
         } else if (view === 'category') {
             conditions.push('t.category_id = ?')
@@ -98,10 +92,7 @@ class TaskRepository {
                      FROM tasks
                      WHERE status = 'active'
                        AND deleted_at IS NULL
-                       AND (
-                           (due_at >= ? AND due_at < ?)
-                           OR (recurrence_type != 'none' AND remind_at >= ? AND remind_at < ?)
-                       )`
+                       AND ((due_at >= ? AND due_at < ?) OR (remind_at >= ? AND remind_at < ?))`
                 )
                 .get(ranges.todayStart, ranges.tomorrowStart, ranges.todayStart, ranges.tomorrowStart).count
         }
@@ -112,10 +103,7 @@ class TaskRepository {
                      FROM tasks
                      WHERE status = 'active'
                        AND deleted_at IS NULL
-                       AND (
-                           (due_at >= ? AND due_at < ?)
-                           OR (recurrence_type != 'none' AND remind_at >= ? AND remind_at < ?)
-                       )`
+                       AND ((due_at >= ? AND due_at < ?) OR (remind_at >= ? AND remind_at < ?))`
                 )
                 .get(ranges.todayStart, ranges.sevenDayEnd, ranges.todayStart, ranges.sevenDayEnd).count
         }
