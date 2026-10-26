@@ -1,4 +1,4 @@
-import { addDays, endOfDay, format, isSameDay, isTomorrow, parseISO, startOfDay } from 'date-fns'
+import { addDays, addHours, addMinutes, format, isSameDay, isTomorrow, parseISO, startOfDay, startOfMinute } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 
 const DEFAULT_REMINDER_TIME = '09:00'
@@ -40,26 +40,23 @@ export function fromDateTimeInput(value) {
     return Number.isNaN(date.getTime()) ? null : date.toISOString()
 }
 
-export function toDateInput(value) {
-    return value ? format(parseISO(value), 'yyyy-MM-dd') : ''
-}
-
-export function fromDateInput(value) {
-    if (!value) {
-        return null
-    }
-    const date = new Date(`${value}T00:00:00`)
-    return Number.isNaN(date.getTime()) ? null : endOfDay(date).toISOString()
-}
-
 export function formatRecurrence(type, interval = 1, unit = 'day') {
+    const units = {
+        minute: '分钟',
+        hour: '小时',
+        day: '天',
+        month: '个月',
+        year: '年'
+    }
     const labels = {
         none: '',
+        minutely: '每分钟',
+        hourly: '每小时',
         daily: '每天',
         weekdays: '工作日',
         weekly: '每周',
         monthly: '每月',
-        custom: `每 ${interval} ${unit === 'month' ? '个月' : unit === 'year' ? '年' : '天'}`
+        custom: `每 ${interval} ${units[unit] || '天'}`
     }
     return labels[type] || ''
 }
@@ -102,6 +99,24 @@ export function buildRecurringReminderAt(value, patch = {}, referenceTime = new 
     const month = Number.isInteger(next.reminderMonth) ? next.reminderMonth : base.getMonth()
     const type = next.recurrenceType
     const unit = next.recurrenceUnit || 'day'
+
+    if (type === 'minutely' || (type === 'custom' && unit === 'minute')) {
+        const step = type === 'minutely' ? 1 : Math.max(1, Number(next.recurrenceInterval) || 1)
+        let candidate = addMinutes(startOfMinute(now), step)
+        while (candidate.getTime() <= now.getTime()) {
+            candidate = addMinutes(candidate, step)
+        }
+        return candidate.toISOString()
+    }
+
+    if (type === 'hourly' || (type === 'custom' && unit === 'hour')) {
+        const step = type === 'hourly' ? 1 : Math.max(1, Number(next.recurrenceInterval) || 1)
+        let candidate = atLocalTime(now, time)
+        while (candidate.getTime() <= now.getTime()) {
+            candidate = addHours(candidate, step)
+        }
+        return candidate.toISOString()
+    }
 
     if (type === 'daily' || type === 'weekdays' || (type === 'custom' && unit === 'day')) {
         let candidate = atLocalTime(now, time)
@@ -156,6 +171,11 @@ export function buildRecurringReminderAt(value, patch = {}, referenceTime = new 
     }
 
     return next.remindAt || null
+}
+
+export function buildRecurringReminderInput(value, patch = {}, referenceTime = new Date()) {
+    const isoValue = buildRecurringReminderAt(value, patch, referenceTime)
+    return isoValue ? toDateTimeInput(isoValue) : ''
 }
 
 export function dateAt(hour, dayOffset = 0) {

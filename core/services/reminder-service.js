@@ -1,10 +1,11 @@
 const { getNextReminderAt } = require('../lib/recurrence')
 
 class ReminderService {
-    constructor({ taskRepository, settingsService, notify, now = () => new Date(), intervalMs = 30_000 }) {
+    constructor({ taskRepository, settingsService, notify, onSettled = null, now = () => new Date(), intervalMs = 30_000 }) {
         this.taskRepository = taskRepository
         this.settingsService = settingsService
         this.notify = notify
+        this.onSettled = onSettled
         this.now = now
         this.intervalMs = intervalMs
         this.timer = null
@@ -41,26 +42,29 @@ class ReminderService {
             const due = this.taskRepository.listDueReminders(now.toISOString())
             const direct = due.slice(0, 5)
             for (const task of direct) {
+                this.settleOccurrence(task, now)
                 this.notify({
                     title: '日序提醒',
                     body: task.title,
                     taskId: task.id
                 })
-                this.settleOccurrence(task, now)
             }
             if (due.length > direct.length) {
                 const extraCount = due.length - direct.length
+                for (const task of due.slice(direct.length)) {
+                    this.settleOccurrence(task, now)
+                }
                 this.notify({
                     title: '还有待办提醒',
                     body: `另有 ${extraCount} 项任务已到提醒时间`,
                     taskId: null
                 })
-                for (const task of due.slice(direct.length)) {
-                    this.settleOccurrence(task, now)
-                }
             }
             this.lastCheckedAt = now.toISOString()
             this.lastDeliveredCount = due.length
+            if (due.length > 0 && this.onSettled) {
+                this.onSettled(due.length)
+            }
             return { checked: due.length, delivered: due.length }
         } finally {
             this.checking = false

@@ -1,10 +1,11 @@
-import { AlertCircle, Bell, CalendarDays, Check, CheckCircle2, Flag, ListTree, MoreHorizontal, Repeat2, RotateCcw, Trash2 } from 'lucide-react'
+import { AlertCircle, Bell, BellRing, CalendarDays, Check, CheckCircle2, Flag, ListTree, MoreHorizontal, Repeat2, RotateCcw, Trash2 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { formatCompletedDate, formatDueDate, formatRecurrence, formatShortDate } from '@/lib/date'
 
 export function TaskRow({ task, selected, onOpen, onComplete, onRemove }) {
     const completed = task.status === 'completed'
     const overdue = !completed && task.dueAt && new Date(task.dueAt).getTime() < Date.now()
+    const reminded = !completed && Boolean(task.remindedAt) && task.recurrenceType === 'none'
 
     return (
         <div className={`task-row ${selected ? 'selected' : ''} ${completed ? 'completed' : ''}`}>
@@ -29,10 +30,19 @@ export function TaskRow({ task, selected, onOpen, onComplete, onRemove }) {
                         )}
                         {task.remindAt && (
                             <span className="meta-item">
-                                {task.recurrenceType !== 'none' ? <Repeat2 size={10} /> : <Bell size={10} />}
-                                {task.recurrenceType !== 'none'
-                                    ? `${formatRecurrence(task.recurrenceType, task.recurrenceInterval, task.recurrenceUnit)} · ${formatShortDate(task.remindAt)}`
-                                    : formatShortDate(task.remindAt)}
+                                {reminded ? (
+                                    <>
+                                        <BellRing size={10} />
+                                        已提醒
+                                    </>
+                                ) : (
+                                    <>
+                                        {task.recurrenceType !== 'none' ? <Repeat2 size={10} /> : <Bell size={10} />}
+                                        {task.recurrenceType !== 'none'
+                                            ? `${formatRecurrence(task.recurrenceType, task.recurrenceInterval, task.recurrenceUnit)} · ${formatShortDate(task.remindAt)}`
+                                            : formatShortDate(task.remindAt)}
+                                    </>
+                                )}
                             </span>
                         )}
                         {task.categoryName && (

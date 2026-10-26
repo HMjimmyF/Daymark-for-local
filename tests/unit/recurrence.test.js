@@ -14,6 +14,38 @@ describe('recurring reminder schedule', () => {
         expect(new Date(next).getTime()).toBe(localDate(2027, 1, 5).getTime())
     })
 
+    it('advances sub-day reminders by minute and hour steps', () => {
+        const current = new Date(2026, 10, 22, 9, 0, 0)
+        const nextMinute = getNextReminderAt({ recurrenceType: 'minutely', recurrenceInterval: 1 }, current.toISOString(), current)
+        const nextHalfHour = getNextReminderAt({ recurrenceType: 'custom', recurrenceInterval: 30, recurrenceUnit: 'minute' }, current.toISOString(), current)
+        const nextTwoHours = getNextReminderAt({ recurrenceType: 'custom', recurrenceInterval: 2, recurrenceUnit: 'hour' }, current.toISOString(), current)
+        const afterGap = new Date(2026, 10, 22, 12, 10, 0)
+        const nextHourly = getNextReminderAt({ recurrenceType: 'hourly', recurrenceInterval: 1 }, current.toISOString(), afterGap)
+
+        expect(new Date(nextMinute).getTime()).toBe(new Date(2026, 10, 22, 9, 1, 0).getTime())
+        expect(new Date(nextHalfHour).getTime()).toBe(new Date(2026, 10, 22, 9, 30, 0).getTime())
+        expect(new Date(nextTwoHours).getTime()).toBe(new Date(2026, 10, 22, 11, 0, 0).getTime())
+        expect(new Date(nextHourly).getTime()).toBe(new Date(2026, 10, 22, 13, 0, 0).getTime())
+    })
+
+    it('stops sub-day reminders at an exact end time', () => {
+        const current = new Date(2026, 10, 22, 9, 0, 0)
+        const until = new Date(2026, 10, 22, 9, 30, 0)
+        const next = getNextReminderAt(
+            { recurrenceType: 'custom', recurrenceInterval: 20, recurrenceUnit: 'minute', recurrenceUntil: until.toISOString() },
+            current.toISOString(),
+            current
+        )
+        const ended = getNextReminderAt(
+            { recurrenceType: 'custom', recurrenceInterval: 20, recurrenceUnit: 'minute', recurrenceUntil: until.toISOString() },
+            new Date(2026, 10, 22, 9, 20, 0).toISOString(),
+            new Date(2026, 10, 22, 9, 20, 0)
+        )
+
+        expect(new Date(next).getTime()).toBe(new Date(2026, 10, 22, 9, 20, 0).getTime())
+        expect(ended).toBeNull()
+    })
+
     it('advances workday reminders from Friday to Monday', () => {
         const friday = localDate(2026, 10, 23)
         const next = getNextReminderAt({ recurrenceType: 'weekdays', recurrenceInterval: 1 }, friday.toISOString(), friday)

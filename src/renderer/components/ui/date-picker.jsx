@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Clock3 } from 'lucide-react'
+import { openNativePicker } from '../../lib/native-picker'
 
 function dateTimeParts(value) {
     const [date = '', time = ''] = (value || '').split('T')
@@ -10,7 +11,15 @@ export function DatePicker({ id, value, onChange, disabled = false, className = 
     return (
         <div className={`date-picker ${className}`}>
             <div className="date-picker-row">
-                <input id={id} className="input" type="date" value={value || ''} onChange={(event) => onChange(event.target.value)} disabled={disabled} />
+                <input
+                    id={id}
+                    className="input"
+                    type="date"
+                    value={value || ''}
+                    onClick={openNativePicker}
+                    onChange={(event) => onChange(event.target.value)}
+                    disabled={disabled}
+                />
                 {value && (
                     <button type="button" onClick={() => onChange('')} disabled={disabled} className="date-picker-inline-clear">
                         清除
@@ -63,6 +72,7 @@ export function DateTimePicker({ id, value, onChange, disabled = false, classNam
                         className="input"
                         type="date"
                         value={draftDate}
+                        onClick={openNativePicker}
                         onChange={(event) => updateDraft(event.target.value, draftTime)}
                         disabled={disabled}
                     />
@@ -82,6 +92,7 @@ export function DateTimePicker({ id, value, onChange, disabled = false, classNam
                             className="input"
                             type="time"
                             value={draftTime}
+                            onClick={openNativePicker}
                             onChange={(event) => updateDraft(draftDate, event.target.value)}
                             disabled={disabled}
                         />

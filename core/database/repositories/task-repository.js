@@ -11,6 +11,7 @@ const TASK_SELECT = `
         t.parent_id AS parentId,
         t.due_at AS dueAt,
         t.remind_at AS remindAt,
+        t.reminded_at AS remindedAt,
         t.recurrence_type AS recurrenceType,
         t.recurrence_interval AS recurrenceInterval,
         t.recurrence_unit AS recurrenceUnit,
@@ -141,11 +142,11 @@ class TaskRepository {
             .prepare(
                 `INSERT INTO tasks (
                     id, title, description, status, priority, category_id, parent_id,
-                    due_at, remind_at, recurrence_type, recurrence_interval, recurrence_unit, recurrence_anchor_at,
+                    due_at, remind_at, reminded_at, recurrence_type, recurrence_interval, recurrence_unit, recurrence_anchor_at,
                     recurrence_until, completed_at, sort_order, created_at, updated_at, deleted_at
                 ) VALUES (
                     @id, @title, @description, @status, @priority, @categoryId, @parentId,
-                    @dueAt, @remindAt, @recurrenceType, @recurrenceInterval, @recurrenceUnit, @recurrenceAnchorAt,
+                    @dueAt, @remindAt, @remindedAt, @recurrenceType, @recurrenceInterval, @recurrenceUnit, @recurrenceAnchorAt,
                     @recurrenceUntil, @completedAt, @sortOrder, @createdAt, @updatedAt, NULL
                 )`
             )
@@ -166,6 +167,7 @@ class TaskRepository {
             parentId: 'parent_id',
             dueAt: 'due_at',
             remindAt: 'remind_at',
+            remindedAt: 'reminded_at',
             recurrenceType: 'recurrence_type',
             recurrenceInterval: 'recurrence_interval',
             recurrenceUnit: 'recurrence_unit',
@@ -218,6 +220,7 @@ class TaskRepository {
                  WHERE t.status = 'active'
                    AND t.deleted_at IS NULL
                    AND t.remind_at IS NOT NULL
+                   AND t.reminded_at IS NULL
                    AND t.remind_at <= ?
                    AND NOT EXISTS (
                        SELECT 1 FROM reminder_deliveries d
@@ -241,6 +244,9 @@ class TaskRepository {
                 .run(taskId, currentRemindAt, deliveredAt)
 
             if (nextRemindAt === undefined) {
+                this.database
+                    .prepare('UPDATE tasks SET reminded_at = ?, updated_at = ? WHERE id = ? AND deleted_at IS NULL')
+                    .run(deliveredAt, deliveredAt, taskId)
                 return
             }
 
@@ -248,7 +254,7 @@ class TaskRepository {
                 this.database
                     .prepare(
                         `UPDATE tasks
-                         SET remind_at = ?, recurrence_anchor_at = COALESCE(recurrence_anchor_at, ?), updated_at = ?
+                         SET remind_at = ?, reminded_at = NULL, recurrence_anchor_at = COALESCE(recurrence_anchor_at, ?), updated_at = ?
                          WHERE id = ? AND remind_at = ? AND deleted_at IS NULL`
                     )
                     .run(nextRemindAt, currentRemindAt, deliveredAt, taskId, currentRemindAt)
@@ -259,15 +265,16 @@ class TaskRepository {
                 .prepare(
                     `UPDATE tasks
                      SET remind_at = NULL,
+                         reminded_at = ?,
                          recurrence_type = 'none',
                          recurrence_interval = 1,
-                             recurrence_unit = 'day',
+                         recurrence_unit = 'day',
                          recurrence_anchor_at = NULL,
                          recurrence_until = NULL,
                          updated_at = ?
                      WHERE id = ? AND remind_at = ? AND deleted_at IS NULL`
                 )
-                .run(deliveredAt, taskId, currentRemindAt)
+                .run(deliveredAt, deliveredAt, taskId, currentRemindAt)
         })
         complete()
     }

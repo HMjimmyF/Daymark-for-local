@@ -1,18 +1,15 @@
 import { Repeat2 } from 'lucide-react'
-import { DatePicker } from '@/components/ui/date-picker'
+import { DateTimePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { RECURRENCE_OPTIONS } from '@/components/common/view-config'
-
-const CUSTOM_UNITS = [
-    { value: 'day', label: '天' },
-    { value: 'month', label: '个月' },
-    { value: 'year', label: '年' }
-]
+import { RECURRENCE_OPTIONS, RECURRENCE_UNIT_OPTIONS } from '@/components/common/view-config'
 
 export function RecurrenceFields({ idPrefix, value, onChange }) {
     const recurring = value.recurrenceType !== 'none'
     const custom = value.recurrenceType === 'custom'
+    const currentUnit =
+        RECURRENCE_UNIT_OPTIONS.find((option) => option.value === (value.recurrenceUnit || 'day')) ??
+        RECURRENCE_UNIT_OPTIONS.find((option) => option.value === 'day')
 
     return (
         <section className="form-section recurrence-section" aria-labelledby={`${idPrefix}-recurrence-heading`}>
@@ -53,7 +50,7 @@ export function RecurrenceFields({ idPrefix, value, onChange }) {
                             id={`${idPrefix}-recurrence-interval`}
                             type="number"
                             min="1"
-                            max="365"
+                            max={currentUnit.maxInterval}
                             value={value.recurrenceInterval}
                             onChange={(event) => onChange({ recurrenceInterval: Number(event.target.value) })}
                         />
@@ -63,7 +60,7 @@ export function RecurrenceFields({ idPrefix, value, onChange }) {
                             aria-label="循环间隔单位"
                             onChange={(event) => onChange({ recurrenceUnit: event.target.value })}
                         >
-                            {CUSTOM_UNITS.map((unit) => (
+                            {RECURRENCE_UNIT_OPTIONS.map((unit) => (
                                 <option key={unit.value} value={unit.value}>
                                     {unit.label}
                                 </option>
@@ -76,13 +73,13 @@ export function RecurrenceFields({ idPrefix, value, onChange }) {
 
             {recurring && (
                 <div>
-                    <Label htmlFor={`${idPrefix}-recurrence-until`}>重复截止日期（可选）</Label>
-                    <DatePicker
+                    <Label htmlFor={`${idPrefix}-recurrence-until`}>重复截止时间（可选）</Label>
+                    <DateTimePicker
                         id={`${idPrefix}-recurrence-until`}
                         value={value.recurrenceUntil}
                         onChange={(recurrenceUntil) => onChange({ recurrenceUntil })}
                     />
-                    <p className="field-hint">最后一天仍会提醒，之后自动停止。留空表示一直重复。</p>
+                    <p className="field-hint">最后一次提醒不晚于该时间，之后自动停止。留空表示一直重复。</p>
                 </div>
             )}
         </section>

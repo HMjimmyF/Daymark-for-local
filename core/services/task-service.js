@@ -90,6 +90,7 @@ class TaskService {
             description: cleanText(parsed.description),
             status: 'active',
             completedAt: null,
+            remindedAt: null,
             createdAt: timestamp,
             updatedAt: timestamp
         })
@@ -134,6 +135,7 @@ class TaskService {
         return this.taskRepository.update(validId, {
             ...parsed,
             ...recurrence,
+            ...(Object.hasOwn(parsed, 'remindAt') && parsed.remindAt !== existing.remindAt ? { remindedAt: null } : {}),
             ...(Object.hasOwn(parsed, 'title') ? { title: parsed.title.trim() } : {}),
             ...(Object.hasOwn(parsed, 'description') ? { description: cleanText(parsed.description) } : {}),
             updatedAt: this.now().toISOString()

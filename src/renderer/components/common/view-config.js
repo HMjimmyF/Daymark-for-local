@@ -34,11 +34,21 @@ export const PRIORITY_OPTIONS = [
 
 export const RECURRENCE_OPTIONS = [
     { value: 'none', label: '仅提醒一次' },
+    { value: 'minutely', label: '每分钟' },
+    { value: 'hourly', label: '每小时' },
     { value: 'daily', label: '每天' },
     { value: 'weekdays', label: '每个工作日' },
     { value: 'weekly', label: '每周' },
     { value: 'monthly', label: '每月' },
     { value: 'custom', label: '自定义间隔' }
+]
+
+export const RECURRENCE_UNIT_OPTIONS = [
+    { value: 'minute', label: '分钟', maxInterval: 1440 },
+    { value: 'hour', label: '小时', maxInterval: 720 },
+    { value: 'day', label: '天', maxInterval: 365 },
+    { value: 'month', label: '个月', maxInterval: 365 },
+    { value: 'year', label: '年', maxInterval: 365 }
 ]
 
 export const CATEGORY_COLORS = ['#5B82F6', '#20A37B', '#E7A33E', '#DB6D87', '#8B6FE8', '#4B9FAD']

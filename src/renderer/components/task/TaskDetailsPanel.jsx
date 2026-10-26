@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { PRIORITY_OPTIONS } from '@/components/common/view-config'
 import { RecurrenceFields } from '@/components/task/RecurrenceFields'
 import { ReminderFields } from '@/components/task/ReminderFields'
-import { buildRecurringReminderAt, formatRecurrence, fromDateInput, fromDateTimeInput, toDateInput, toDateTimeInput } from '@/lib/date'
+import { buildRecurringReminderInput, formatRecurrence, fromDateTimeInput, toDateTimeInput } from '@/lib/date'
 import { api } from '@/services/daymark'
 import { useAppStore } from '@/stores/app-store'
 import { useTaskDetail } from '@/hooks/use-app-data'
@@ -23,7 +23,7 @@ function formFromTask(task) {
         recurrenceType: task.recurrenceType || 'none',
         recurrenceInterval: task.recurrenceInterval || 1,
         recurrenceUnit: task.recurrenceUnit || 'day',
-        recurrenceUntil: toDateInput(task.recurrenceUntil)
+        recurrenceUntil: toDateTimeInput(task.recurrenceUntil)
     }
 }
 
@@ -82,7 +82,7 @@ export function TaskDetailsPanel({ taskId, categories, onCompleteTask }) {
             const next = { ...current, ...patch }
             const ruleShapeChanged = Object.hasOwn(patch, 'recurrenceType') || Object.hasOwn(patch, 'recurrenceUnit')
             if (next.recurrenceType !== 'none' && (ruleShapeChanged || !next.remindAt)) {
-                next.remindAt = buildRecurringReminderAt(next)
+                next.remindAt = buildRecurringReminderInput(next)
             }
             return next
         })
@@ -96,7 +96,7 @@ export function TaskDetailsPanel({ taskId, categories, onCompleteTask }) {
         form.recurrenceType !== (task.recurrenceType || 'none') ||
         Number(form.recurrenceInterval) !== (task.recurrenceInterval || 1) ||
         form.recurrenceUnit !== (task.recurrenceUnit || 'day') ||
-        (form.recurrenceUntil || null) !== toDateInput(task.recurrenceUntil)
+        (form.recurrenceUntil || null) !== toDateTimeInput(task.recurrenceUntil)
 
     const save = async () => {
         if (!form.title.trim()) {
@@ -115,7 +115,7 @@ export function TaskDetailsPanel({ taskId, categories, onCompleteTask }) {
                 recurrenceType: form.recurrenceType,
                 recurrenceInterval: Number(form.recurrenceInterval),
                 recurrenceUnit: form.recurrenceUnit,
-                recurrenceUntil: fromDateInput(form.recurrenceUntil)
+                recurrenceUntil: fromDateTimeInput(form.recurrenceUntil)
             })
             showToast('修改已保存')
         } catch (error) {
@@ -166,7 +166,15 @@ export function TaskDetailsPanel({ taskId, categories, onCompleteTask }) {
     return (
         <aside className="details-panel" aria-label="任务详情">
             <div className="details-header">
-                <span className="details-eyebrow">{task.parentId ? '子任务详情' : task.status === 'completed' ? '已完成任务' : '任务详情'}</span>
+                <span className="details-eyebrow">
+                    {task.parentId
+                        ? '子任务详情'
+                        : task.status === 'completed'
+                          ? '已完成任务'
+                          : task.remindedAt && task.recurrenceType === 'none'
+                            ? '已提醒任务'
+                            : '任务详情'}
+                </span>
                 <button type="button" className="icon-button" onClick={closeTask} aria-label="关闭详情">
                     <X size={16} />
                 </button>
@@ -291,9 +299,11 @@ export function TaskDetailsPanel({ taskId, categories, onCompleteTask }) {
                         {task.remindAt && (
                             <span className="meta-item">
                                 {task.recurrenceType !== 'none' ? <Repeat2 size={10} /> : <Bell size={10} />}
-                                {task.recurrenceType !== 'none'
-                                    ? `${formatRecurrence(task.recurrenceType, task.recurrenceInterval, task.recurrenceUnit)}循环提醒将在应用运行时发送`
-                                    : '提醒将在应用运行时发送'}
+                                {task.remindAt && task.remindedAt && task.recurrenceType === 'none'
+                                    ? '已提醒，完成状态需手动切换'
+                                    : task.recurrenceType !== 'none'
+                                      ? `${formatRecurrence(task.recurrenceType, task.recurrenceInterval, task.recurrenceUnit)}循环提醒将在应用运行时发送`
+                                      : '提醒将在应用运行时发送'}
                             </span>
                         )}
                         {!task.remindAt && task.dueAt && (

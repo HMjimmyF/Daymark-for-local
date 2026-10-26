@@ -2,9 +2,7 @@ import { BellRing } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogLayout, DialogTitle } from '@/components/ui/dialog'
 
-export function ReminderActionDialog({ task, busy = false, onDismiss, onComplete, onSnooze, onOpenDetails }) {
-    const isOneTime = task?.recurrenceType === 'none'
-
+export function ReminderActionDialog({ task, busy = false, onDismiss, onComplete, onOpenDetails }) {
     return (
         <Dialog open={Boolean(task)} onOpenChange={(open) => !open && !busy && onDismiss()}>
             <DialogContent layout className="reminder-action-dialog">
@@ -25,11 +23,6 @@ export function ReminderActionDialog({ task, busy = false, onDismiss, onComplete
                             <Button variant="ghost" onClick={onComplete} disabled={busy}>
                                 标记已完成
                             </Button>
-                            {isOneTime && (
-                                <Button variant="secondary" onClick={onSnooze} disabled={busy}>
-                                    十分钟后再次提醒
-                                </Button>
-                            )}
                             <Button onClick={onOpenDetails} disabled={busy}>
                                 打开详情
                             </Button>
@@ -37,7 +30,7 @@ export function ReminderActionDialog({ task, busy = false, onDismiss, onComplete
                     }
                 >
                     <p className="reminder-action-description">{task?.description || '此待办没有描述。'}</p>
-                    {isOneTime && <p className="reminder-action-hint">关闭此弹窗也会在十分钟后再次提醒。</p>}
+                    <p className="reminder-action-hint">关闭弹窗不会改变提醒状态：该待办保持“已提醒”。</p>
                 </DialogLayout>
             </DialogContent>
         </Dialog>

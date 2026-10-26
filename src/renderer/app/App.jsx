@@ -141,22 +141,8 @@ export function App() {
         }
     }
 
-    const scheduleReminderSnooze = async (task) => {
-        try {
-            await api.tasks.update(task.id, { remindAt: new Date(Date.now() + 10 * 60 * 1000).toISOString() })
-            showToast('已设置十分钟后再次提醒')
-            return true
-        } catch (error) {
-            showToast(error.message, 'error')
-            return false
-        }
-    }
-
-    const dismissReminder = (task) => {
+    const dismissReminder = () => {
         setReminderTask(null)
-        if (task?.recurrenceType === 'none') {
-            void scheduleReminderSnooze(task)
-        }
     }
 
     const completeReminderTask = async () => {
@@ -175,43 +161,13 @@ export function App() {
         }
     }
 
-    const openReminderDetails = async () => {
+    const openReminderDetails = () => {
         if (!reminderTask) {
             return
         }
         const task = reminderTask
-        setReminderActionBusy(true)
-        try {
-            if (task.recurrenceType === 'none') {
-                const snoozed = await scheduleReminderSnooze(task)
-                if (!snoozed) {
-                    return
-                }
-            }
-            setReminderTask(null)
-            openTask(task.id)
-        } catch (error) {
-            showToast(error.message, 'error')
-        } finally {
-            setReminderActionBusy(false)
-        }
-    }
-
-    const snoozeReminderTask = async () => {
-        if (!reminderTask) {
-            return
-        }
-        const task = reminderTask
-        setReminderActionBusy(true)
-        try {
-            if (await scheduleReminderSnooze(task)) {
-                setReminderTask(null)
-            }
-        } catch (error) {
-            showToast(error.message, 'error')
-        } finally {
-            setReminderActionBusy(false)
-        }
+        setReminderTask(null)
+        openTask(task.id)
     }
 
     const showDetails = detailsOpen && activeView !== 'settings'
@@ -269,9 +225,8 @@ export function App() {
             <ReminderActionDialog
                 task={reminderTask}
                 busy={reminderActionBusy}
-                onDismiss={() => dismissReminder(reminderTask)}
+                onDismiss={dismissReminder}
                 onComplete={completeReminderTask}
-                onSnooze={snoozeReminderTask}
                 onOpenDetails={openReminderDetails}
             />
             <CommandPalette />

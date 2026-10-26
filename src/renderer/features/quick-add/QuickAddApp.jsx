@@ -4,6 +4,7 @@ import brandIcon from '@brand/brand-icon.svg'
 import { Button } from '@/components/ui/button'
 import { api } from '@/services/daymark'
 import { dateAt, fromDateTimeInput, toDateTimeInput } from '@/lib/date'
+import { openNativePicker } from '@/lib/native-picker'
 import { useTheme } from '@/hooks/use-theme'
 import { useAppStore } from '@/stores/app-store'
 
@@ -97,6 +98,7 @@ export function QuickAddApp() {
                             className="date-input"
                             type="datetime-local"
                             value={dueAt}
+                            onClick={openNativePicker}
                             onChange={(event) => setDueAt(event.target.value)}
                             aria-label="完成截止时间"
                         />

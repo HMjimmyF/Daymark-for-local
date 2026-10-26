@@ -126,7 +126,7 @@ describe('SQLite repositories and services', () => {
             now: () => fixedNow
         })
         const backup = await backupService.create()
-        expect(DatabaseManager.validateDatabase(backup.path).version).toBe(3)
+        expect(DatabaseManager.validateDatabase(backup.path).version).toBe(4)
 
         taskService.create({ title: '恢复后应消失' })
         await backupService.restore(backup.path)
@@ -158,6 +158,75 @@ describe('SQLite repositories and services', () => {
         taskService.complete(completed.id)
         expect(reminders.check().delivered).toBe(0)
         expect(task.id).toBeTruthy()
+    })
+
+    it('marks a one-off reminder as reminded without completing it', () => {
+        const notify = vi.fn()
+        notify.supported = () => true
+        const dueAt = new Date(2026, 9, 22, 9, 0, 0).toISOString()
+        const task = taskService.create({ title: '一次性提醒', remindAt: dueAt })
+        const onSettled = vi.fn()
+        const reminders = new ReminderService({
+            taskRepository,
+            settingsService,
+            notify,
+            onSettled,
+            now: () => fixedNow
+        })
+
+        expect(task.remindedAt).toBeNull()
+        expect(reminders.check().delivered).toBe(1)
+        expect(onSettled).toHaveBeenCalledTimes(1)
+
+        const reminded = taskService.get(task.id)
+        expect(reminded.status).toBe('active')
+        expect(reminded.completedAt).toBeNull()
+        expect(reminded.remindAt).toBe(dueAt)
+        expect(reminded.remindedAt).toBe(fixedNow.toISOString())
+        expect(taskRepository.listDueReminders(fixedNow.toISOString())).toHaveLength(0)
+        expect(reminders.check().delivered).toBe(0)
+        expect(notify).toHaveBeenCalledTimes(1)
+    })
+
+    it('clears the reminded state when the reminder time changes', () => {
+        const notify = vi.fn()
+        notify.supported = () => true
+        const task = taskService.create({ title: '改期提醒', remindAt: new Date(2026, 9, 22, 9, 0, 0).toISOString() })
+        const reminders = new ReminderService({ taskRepository, settingsService, notify, now: () => fixedNow })
+
+        expect(reminders.check().delivered).toBe(1)
+        expect(taskService.get(task.id).remindedAt).toBe(fixedNow.toISOString())
+
+        const nextRemindAt = new Date(2026, 9, 23, 9, 0, 0).toISOString()
+        const updated = taskService.update(task.id, { remindAt: nextRemindAt })
+        expect(updated.remindedAt).toBeNull()
+        expect(updated.remindAt).toBe(nextRemindAt)
+    })
+
+    it('keeps sub-day recurrence advancing every minute and hour', () => {
+        const notify = vi.fn()
+        notify.supported = () => true
+        let reminderNow = new Date(2026, 9, 22, 10, 0, 0)
+        const minutely = taskService.create({
+            title: '每分钟喝水',
+            remindAt: new Date(2026, 9, 22, 10, 0, 30).toISOString(),
+            recurrenceType: 'minutely'
+        })
+        const hourly = taskService.create({
+            title: '每小时起身',
+            remindAt: new Date(2026, 9, 22, 10, 0, 0).toISOString(),
+            recurrenceType: 'custom',
+            recurrenceInterval: 2,
+            recurrenceUnit: 'hour'
+        })
+        const reminders = new ReminderService({ taskRepository, settingsService, notify, now: () => reminderNow })
+
+        reminderNow = new Date(2026, 9, 22, 10, 1, 0)
+        expect(reminders.check().delivered).toBe(2)
+        expect(new Date(taskService.get(minutely.id).remindAt).getTime()).toBe(new Date(2026, 9, 22, 10, 1, 30).getTime())
+        expect(new Date(taskService.get(hourly.id).remindAt).getTime()).toBe(new Date(2026, 9, 22, 12, 0, 0).getTime())
+        expect(taskService.get(minutely.id).remindedAt).toBeNull()
+        expect(taskService.get(hourly.id).remindedAt).toBeNull()
     })
 
     it('advances the same task to its next recurring reminder', () => {
@@ -296,7 +365,7 @@ describe('migration safety', () => {
 
     it('tracks schema version in a real SQLite file', () => {
         const probe = new Database(path.join(tempDir, 'daymark.sqlite'), { readonly: true })
-        expect(probe.pragma('user_version', { simple: true })).toBe(3)
+        expect(probe.pragma('user_version', { simple: true })).toBe(4)
         probe.close()
     })
 
@@ -319,7 +388,43 @@ describe('migration safety', () => {
         const version = upgraded.db.pragma('user_version', { simple: true })
         upgraded.close()
 
-        expect(version).toBe(3)
+        expect(version).toBe(4)
         expect(task).toEqual({ title: '旧任务', recurrence_type: 'none', recurrence_unit: 'day' })
+    })
+
+    it('keeps reminder deliveries when upgrading a version 3 database', () => {
+        const legacyPath = path.join(tempDir, 'legacy-v3.sqlite')
+        const legacy = new Database(legacyPath)
+        for (const migration of migrations.filter((item) => item.version <= 3)) {
+            migration.up(legacy)
+        }
+        legacy.pragma('user_version = 3')
+        legacy
+            .prepare(
+                `INSERT INTO tasks (id, title, status, priority, sort_order, created_at, updated_at, remind_at, recurrence_type, recurrence_interval, recurrence_unit)
+                 VALUES ('legacy-reminder', '旧提醒', 'active', 0, 1, '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z', '2026-01-02T09:00:00.000Z', 'daily', 1, 'day')`
+            )
+            .run()
+        legacy
+            .prepare('INSERT INTO reminder_deliveries (task_id, remind_at, delivered_at) VALUES (?, ?, ?)')
+            .run('legacy-reminder', '2026-01-02T09:00:00.000Z', '2026-01-02T09:00:05.000Z')
+        legacy.close()
+
+        const upgraded = new DatabaseManager(legacyPath)
+        upgraded.open()
+        const task = upgraded.db.prepare('SELECT title, reminded_at, recurrence_type FROM tasks WHERE id = ?').get('legacy-reminder')
+        const deliveries = upgraded.db.prepare('SELECT COUNT(*) AS count FROM reminder_deliveries').get()
+        upgraded.db
+            .prepare(
+                `INSERT INTO tasks (id, title, status, priority, sort_order, created_at, updated_at, recurrence_type, recurrence_interval, recurrence_unit)
+                 VALUES ('sub-day', '每分钟', 'active', 0, 2, '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z', 'custom', 30, 'minute')`
+            )
+            .run()
+        const version = upgraded.db.pragma('user_version', { simple: true })
+        upgraded.close()
+
+        expect(version).toBe(4)
+        expect(task).toEqual({ title: '旧提醒', reminded_at: null, recurrence_type: 'daily' })
+        expect(deliveries.count).toBe(1)
     })
 })

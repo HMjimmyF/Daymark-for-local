@@ -1,7 +1,7 @@
-const { addDays, addMonths, addWeeks, addYears } = require('date-fns')
+const { addDays, addHours, addMinutes, addMonths, addWeeks, addYears } = require('date-fns')
 
-const RECURRENCE_TYPES = ['none', 'daily', 'weekdays', 'weekly', 'monthly', 'custom']
-const CUSTOM_RECURRENCE_UNITS = ['day', 'month', 'year']
+const RECURRENCE_TYPES = ['none', 'minutely', 'hourly', 'daily', 'weekdays', 'weekly', 'monthly', 'custom']
+const CUSTOM_RECURRENCE_UNITS = ['minute', 'hour', 'day', 'month', 'year']
 const MAX_ADVANCE_STEPS = 200_000
 
 function parseDate(value, label) {
@@ -13,6 +13,12 @@ function parseDate(value, label) {
 }
 
 function addInterval(current, type, interval, unit = 'day') {
+    if (type === 'minutely' || (type === 'custom' && unit === 'minute')) {
+        return addMinutes(current, interval)
+    }
+    if (type === 'hourly' || (type === 'custom' && unit === 'hour')) {
+        return addHours(current, interval)
+    }
     if (type === 'daily' || (type === 'custom' && unit === 'day')) {
         return addDays(current, interval)
     }

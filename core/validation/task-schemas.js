@@ -4,9 +4,9 @@ const idSchema = z.string().uuid('任务或分类标识无效')
 const isoDateSchema = z.string().datetime({ offset: true, message: '日期格式无效' }).nullable()
 const titleSchema = z.string().trim().min(1, '任务标题不能为空').max(200, '任务标题不能超过 200 个字符')
 const descriptionSchema = z.string().max(5000, '描述不能超过 5000 个字符').nullable()
-const recurrenceTypeSchema = z.enum(['none', 'daily', 'weekdays', 'weekly', 'monthly', 'custom'])
-const recurrenceUnitSchema = z.enum(['day', 'month', 'year'])
-const recurrenceIntervalSchema = z.number().int().min(1, '循环间隔至少为 1').max(365, '循环间隔不能超过 365')
+const recurrenceTypeSchema = z.enum(['none', 'minutely', 'hourly', 'daily', 'weekdays', 'weekly', 'monthly', 'custom'])
+const recurrenceUnitSchema = z.enum(['minute', 'hour', 'day', 'month', 'year'])
+const recurrenceIntervalSchema = z.number().int().min(1, '循环间隔至少为 1').max(10080, '循环间隔不能超过 10080')
 
 const taskInputSchema = z.object({
     title: titleSchema,

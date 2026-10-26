@@ -8,7 +8,7 @@ import { DateTimePicker } from '@/components/ui/date-picker'
 import { PRIORITY_OPTIONS } from '@/components/common/view-config'
 import { RecurrenceFields } from '@/components/task/RecurrenceFields'
 import { ReminderFields } from '@/components/task/ReminderFields'
-import { buildRecurringReminderAt, fromDateInput, fromDateTimeInput } from '@/lib/date'
+import { buildRecurringReminderInput, fromDateTimeInput } from '@/lib/date'
 import { api } from '@/services/daymark'
 import { useAppStore } from '@/stores/app-store'
 
@@ -44,7 +44,7 @@ export function TaskCreateDialog({ open, categories, initialCategoryId, onClose,
             const next = { ...current, ...patch }
             const ruleShapeChanged = Object.hasOwn(patch, 'recurrenceType') || Object.hasOwn(patch, 'recurrenceUnit')
             if (next.recurrenceType !== 'none' && (ruleShapeChanged || !next.remindAt)) {
-                next.remindAt = buildRecurringReminderAt(next)
+                next.remindAt = buildRecurringReminderInput(next)
             }
             return next
         })
@@ -67,7 +67,7 @@ export function TaskCreateDialog({ open, categories, initialCategoryId, onClose,
                 recurrenceType: form.recurrenceType,
                 recurrenceInterval: form.recurrenceInterval,
                 recurrenceUnit: form.recurrenceUnit,
-                recurrenceUntil: fromDateInput(form.recurrenceUntil)
+                recurrenceUntil: fromDateTimeInput(form.recurrenceUntil)
             })
             showToast('任务已添加')
             onCreated?.(task)

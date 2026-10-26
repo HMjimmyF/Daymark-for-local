@@ -72,7 +72,12 @@ async function initialize() {
     windowManager = new WindowManager({ settingsService })
     shortcutManager = new ShortcutManager({ windowManager })
     const notify = createNotifier({ windowManager })
-    reminderService = new ReminderService({ taskRepository, settingsService, notify })
+    reminderService = new ReminderService({
+        taskRepository,
+        settingsService,
+        notify,
+        onSettled: () => windowManager.broadcast('data:changed')
+    })
     backupService.onBeforeRestore = () => reminderService.stop()
     backupService.onAfterRestore = () => {
         reminderService.start()
