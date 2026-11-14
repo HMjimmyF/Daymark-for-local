@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '@/services/daymark'
 
 const EMPTY_COUNTS = { inbox: 0, today: 0, upcoming: 0, all: 0 }
+const VIEWS_WITHOUT_LIST = new Set(['settings', 'calendar'])
 
 export function useAppData({ activeView, categoryId, search }) {
     const [tasks, setTasks] = useState([])
@@ -25,7 +26,7 @@ export function useAppData({ activeView, categoryId, search }) {
     }, [])
 
     const loadTasks = useCallback(async () => {
-        if (activeView === 'settings') {
+        if (VIEWS_WITHOUT_LIST.has(activeView)) {
             setTasks([])
             setLoading(false)
             return
@@ -115,4 +116,40 @@ export function useTaskDetail(taskId) {
     useEffect(() => api.onDataChanged(reload), [reload])
 
     return { task, loading, reload }
+}
+
+export function useCalendarTasks(search = '') {
+    const [tasks, setTasks] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
+    const requestId = useRef(0)
+
+    const loadTasks = useCallback(async () => {
+        const currentRequest = ++requestId.current
+        setLoading(true)
+        try {
+            const nextTasks = await api.tasks.list({ view: 'all', search })
+            if (currentRequest === requestId.current) {
+                setTasks(nextTasks)
+                setError('')
+            }
+        } catch (requestError) {
+            if (currentRequest === requestId.current) {
+                setError(requestError.message)
+            }
+        } finally {
+            if (currentRequest === requestId.current) {
+                setLoading(false)
+            }
+        }
+    }, [search])
+
+    useEffect(() => {
+        const timer = window.setTimeout(loadTasks, search ? 140 : 0)
+        return () => window.clearTimeout(timer)
+    }, [loadTasks, search])
+
+    useEffect(() => api.onDataChanged(loadTasks), [loadTasks])
+
+    return { tasks, loading, error, reload: loadTasks }
 }

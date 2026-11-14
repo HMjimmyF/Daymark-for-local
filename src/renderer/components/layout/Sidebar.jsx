@@ -1,5 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
-import { CalendarDays, CalendarRange, CheckCircle2, Inbox, ListTodo, MoreHorizontal, Pencil, Plus, Settings, SlidersHorizontal, Trash2 } from 'lucide-react'
+import {
+    CalendarClock,
+    CalendarDays,
+    CalendarRange,
+    CheckCircle2,
+    Inbox,
+    ListTodo,
+    MoreHorizontal,
+    Pencil,
+    Plus,
+    Settings,
+    SlidersHorizontal,
+    Trash2
+} from 'lucide-react'
 import brandIcon from '@brand/brand-icon.svg'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { api } from '@/services/daymark'
@@ -10,7 +23,8 @@ const primaryViews = [
     { id: 'upcoming', label: '未来 7 天', icon: CalendarRange, shortcut: '2' },
     { id: 'inbox', label: '收集箱', icon: Inbox, shortcut: '3' },
     { id: 'all', label: '全部待办', icon: ListTodo, shortcut: '4' },
-    { id: 'completed', label: '已完成', icon: CheckCircle2, shortcut: '5' }
+    { id: 'calendar', label: '日程表', icon: CalendarClock, shortcut: '5' },
+    { id: 'completed', label: '已完成', icon: CheckCircle2, shortcut: '6' }
 ]
 
 export function Sidebar({ categories, counts }) {

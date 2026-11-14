@@ -2,9 +2,18 @@ import { useEffect, useRef, useState } from 'react'
 import { Clock3 } from 'lucide-react'
 import { openNativePicker } from '../../lib/native-picker'
 
+const DEFAULT_PICKER_TIME = '09:00'
+
 function dateTimeParts(value) {
     const [date = '', time = ''] = (value || '').split('T')
     return { date, time: time.slice(0, 5) }
+}
+
+function todayInputValue() {
+    const now = new Date()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    return `${now.getFullYear()}-${month}-${day}`
 }
 
 export function DatePicker({ id, value, onChange, disabled = false, className = '' }) {
@@ -55,10 +64,13 @@ export function DateTimePicker({ id, value, onChange, disabled = false, classNam
     }
 
     const updateDraft = (date, time) => {
-        const nextValue = date && time ? `${date}T${time}` : ''
+        // 只填日期或只填时间时补齐另一半，避免已选的日期被静默丢弃。
+        const nextDate = date || (time ? todayInputValue() : '')
+        const nextTime = time || (date ? DEFAULT_PICKER_TIME : '')
+        const nextValue = nextDate && nextTime ? `${nextDate}T${nextTime}` : ''
         emittedValue.current = nextValue
-        setDraftDate(date)
-        setDraftTime(time)
+        setDraftDate(nextDate)
+        setDraftTime(nextTime)
         onChange(nextValue)
     }
 

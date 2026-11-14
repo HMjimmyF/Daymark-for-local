@@ -6,6 +6,7 @@ export const useAppStore = create((set, get) => ({
     search: '',
     selectedTaskId: null,
     detailsOpen: false,
+    calendarDay: null,
     createOpen: false,
     commandOpen: false,
     categoryManagerOpen: false,
@@ -18,11 +19,15 @@ export const useAppStore = create((set, get) => ({
             search: '',
             selectedTaskId: null,
             detailsOpen: false,
+            calendarDay: null,
             settingsOpen: view === 'settings'
         })
     },
     openTask: (id) => set({ selectedTaskId: id, detailsOpen: true, settingsOpen: false }),
     closeTask: () => set({ selectedTaskId: null, detailsOpen: false }),
+    openCalendarDay: (calendarDay) => set({ calendarDay, selectedTaskId: null, detailsOpen: false }),
+    closeCalendarDay: () => set({ calendarDay: null, selectedTaskId: null, detailsOpen: false }),
+    closeOverlays: () => set({ calendarDay: null, selectedTaskId: null, detailsOpen: false }),
     setSearch: (search) => set({ search }),
     setCreateOpen: (createOpen) => set({ createOpen }),
     setCommandOpen: (commandOpen) => set({ commandOpen }),

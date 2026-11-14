@@ -1,16 +1,17 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Topbar } from '@/components/layout/Topbar'
 import { WindowTitlebar } from '@/components/layout/WindowTitlebar'
 import { TaskList } from '@/components/task/TaskList'
-import { TaskDetailsPanel } from '@/components/task/TaskDetailsPanel'
+import { TaskDetailsDrawer } from '@/components/task/TaskDetailsDrawer'
 import { TaskCreateDialog } from '@/components/dialog/TaskCreateDialog'
 import { CommandPalette } from '@/components/dialog/CommandPalette'
 import { CategoryManagerDialog } from '@/components/dialog/CategoryManagerDialog'
 import { CompleteRecurringDialog } from '@/components/dialog/CompleteRecurringDialog'
 import { ReminderActionDialog } from '@/components/dialog/ReminderActionDialog'
 import { SettingsPage } from '@/components/settings/SettingsPage'
+import { CalendarPage } from '@/components/calendar/CalendarPage'
 import { useAppData } from '@/hooks/use-app-data'
 import { useTheme } from '@/hooks/use-theme'
 import { useAppStore } from '@/stores/app-store'
@@ -52,6 +53,7 @@ export function App() {
     const createOpen = useAppStore((state) => state.createOpen)
     const categoryManagerOpen = useAppStore((state) => state.categoryManagerOpen)
     const navigate = useAppStore((state) => state.navigate)
+    const closeOverlays = useAppStore((state) => state.closeOverlays)
     const setCreateOpen = useAppStore((state) => state.setCreateOpen)
     const setCategoryManagerOpen = useAppStore((state) => state.setCategoryManagerOpen)
     const openTask = useAppStore((state) => state.openTask)
@@ -65,6 +67,17 @@ export function App() {
 
     useTheme(appData.settings?.theme)
     useAppShortcuts()
+
+    // 任何来源的视图切换（侧栏、命令面板、托盘跳转、分类删除后的回退）都必须收起任务详情与日程抽屉。
+    const viewKey = `${activeView}|${categoryId ?? ''}`
+    const lastViewKey = useRef(viewKey)
+    useEffect(() => {
+        if (lastViewKey.current === viewKey) {
+            return
+        }
+        lastViewKey.current = viewKey
+        closeOverlays()
+    }, [viewKey, closeOverlays])
 
     useEffect(
         () =>
@@ -176,7 +189,7 @@ export function App() {
         <>
             <div className="app-shell">
                 <Sidebar categories={appData.categories} counts={appData.counts} />
-                <section className={`workspace ${showDetails ? 'details-open' : ''}`}>
+                <section className="workspace">
                     <WindowTitlebar />
                     <Topbar category={selectedCategory} onRefresh={appData.reloadAll} />
                     {appData.error && (
@@ -185,15 +198,17 @@ export function App() {
                             <span>{appData.error}</span>
                         </div>
                     )}
-                    <div className={`workspace-body ${showDetails ? 'details-open' : ''}`}>
+                    <div className="workspace-body">
                         <main className="main-area">
-                            <div className="content-scroll">
+                            <div className={`content-scroll${activeView === 'calendar' ? ' calendar-scroll' : ''}`}>
                                 {activeView === 'settings' ? (
                                     <SettingsPage
                                         settings={appData.settings}
                                         onSettingsChanged={() => appData.loadReferenceData()}
                                         onReload={appData.reloadAll}
                                     />
+                                ) : activeView === 'calendar' ? (
+                                    <CalendarPage search={search} onOpen={(task) => openTask(task.id)} onComplete={completeTask} onRemove={removeTask} />
                                 ) : (
                                     <TaskList
                                         tasks={appData.tasks}
@@ -209,11 +224,11 @@ export function App() {
                                 )}
                             </div>
                         </main>
-                        {showDetails && <TaskDetailsPanel taskId={selectedTaskId} categories={appData.categories} onCompleteTask={completeTask} />}
                     </div>
                 </section>
             </div>
 
+            <TaskDetailsDrawer taskId={showDetails ? selectedTaskId : null} categories={appData.categories} onCompleteTask={completeTask} depth={2} />
             <TaskCreateDialog
                 open={createOpen}
                 categories={appData.categories}

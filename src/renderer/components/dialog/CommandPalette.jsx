@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { CalendarDays, CheckCircle2, Inbox, Plus, Search, Settings } from 'lucide-react'
+import { CalendarClock, CalendarDays, CheckCircle2, Inbox, Plus, Search, Settings } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogLayout, DialogTitle } from '@/components/ui/dialog'
 import { api } from '@/services/daymark'
 import { useAppStore } from '@/stores/app-store'
@@ -8,6 +8,7 @@ import { formatShortDate } from '@/lib/date'
 const navigationCommands = [
     { id: 'inbox', label: '前往收集箱', icon: Inbox },
     { id: 'today', label: '查看今天', icon: CalendarDays },
+    { id: 'calendar', label: '打开日程表', icon: CalendarClock },
     { id: 'completed', label: '查看已完成', icon: CheckCircle2 },
     { id: 'settings', label: '打开设置与数据', icon: Settings }
 ]

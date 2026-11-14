@@ -15,6 +15,10 @@ export const VIEW_META = {
         label: '全部待办',
         description: '所有尚未完成的任务'
     },
+    calendar: {
+        label: '日程表',
+        description: '以日历查看每天安排的待办'
+    },
     completed: {
         label: '已完成',
         description: '按完成时间倒序排列'

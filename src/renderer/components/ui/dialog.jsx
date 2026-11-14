@@ -1,6 +1,7 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { DIALOG_LAYER, layerZIndex } from '@/components/ui/layers'
 
 export const Dialog = DialogPrimitive.Root
 export const DialogTrigger = DialogPrimitive.Trigger
@@ -8,11 +9,17 @@ export const DialogClose = DialogPrimitive.Close
 export const DialogTitle = DialogPrimitive.Title
 export const DialogDescription = DialogPrimitive.Description
 
-export function DialogContent({ className, children, showClose = true, layout = false, ...props }) {
+/** 对话框默认位于所有抽屉之上，从抽屉里打开的确认弹窗才能正常操作。 */
+export function DialogContent({ className, children, showClose = true, layout = false, layer = DIALOG_LAYER, style, ...props }) {
+    const zIndex = layerZIndex(layer)
     return (
         <DialogPrimitive.Portal>
-            <DialogPrimitive.Overlay className="dialog-overlay" />
-            <DialogPrimitive.Content className={cn('dialog-content', layout && 'dialog-content-layout', className)} {...props}>
+            <DialogPrimitive.Overlay className="dialog-overlay" style={{ zIndex }} />
+            <DialogPrimitive.Content
+                className={cn('dialog-content', layout && 'dialog-content-layout', className)}
+                style={{ zIndex: zIndex + 1, ...style }}
+                {...props}
+            >
                 {children}
                 {showClose && (
                     <DialogPrimitive.Close className="icon-button" style={{ position: 'absolute', top: 14, right: 14 }} aria-label="关闭">

@@ -12,6 +12,7 @@
     --primary: 225 73% 60%;
     --primary-strong: 225 72% 52%;
     --primary-soft: 225 100% 96%;
+    --primary-contrast: 0 0% 100%;
     --accent: 165 37% 40%;
     --accent-soft: 165 43% 94%;
     --danger: 0 66% 55%;
@@ -29,7 +30,7 @@
     --radius-md: 9px;
     --radius-lg: 14px;
     --sidebar-width: 224px;
-    --details-width: 360px;
+    --drawer-width: 430px;
     --titlebar-height: 36px;
     --duration: 150ms;
     --font-sans: 'Segoe UI Variable', 'Segoe UI', 'Microsoft YaHei UI', sans-serif;
@@ -48,6 +49,7 @@
     --primary: 225 77% 68%;
     --primary-strong: 225 78% 73%;
     --primary-soft: 225 28% 19%;
+    --primary-contrast: 225 30% 12%;
     --accent: 165 42% 56%;
     --accent-soft: 165 24% 18%;
     --danger: 0 72% 66%;
