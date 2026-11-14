@@ -194,6 +194,12 @@ export function buildRecurringReminderInput(value, patch = {}, referenceTime = n
     return isoValue ? toDateTimeInput(isoValue) : ''
 }
 
+/** 重复开始时间未填写时，优先沿用任务已有的提醒/截止时间（日程表中新建的任务即为当天）。 */
+function defaultRecurrenceStart(value, referenceTime) {
+    const existing = parseLocalValue(value.remindAt) || parseLocalValue(value.dueAt)
+    return toDateTimeInput((existing || referenceTime).toISOString())
+}
+
 export function applyRecurrenceFormPatch(value, patch, referenceTime = new Date()) {
     const next = { ...value, ...patch }
     const ruleShapeChanged = Object.hasOwn(patch, 'recurrenceType') || Object.hasOwn(patch, 'recurrenceUnit') || Object.hasOwn(patch, 'recurrenceAnchorAt')
@@ -202,7 +208,7 @@ export function applyRecurrenceFormPatch(value, patch, referenceTime = new Date(
         return next
     }
     if (Object.hasOwn(patch, 'recurrenceType') && !next.recurrenceAnchorAt) {
-        next.recurrenceAnchorAt = toDateTimeInput(referenceTime.toISOString())
+        next.recurrenceAnchorAt = defaultRecurrenceStart(next, referenceTime)
     }
     if (ruleShapeChanged || !next.remindAt) {
         next.remindAt = buildRecurringReminderInput(next, {}, referenceTime)

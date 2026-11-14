@@ -79,7 +79,9 @@ export function RecurrenceFields({ idPrefix, value, onChange }) {
                         value={value.recurrenceAnchorAt}
                         onChange={(recurrenceAnchorAt) => onChange({ recurrenceAnchorAt })}
                     />
-                    <p className="field-hint">默认从当前时间开始；选择更晚的时间后，首次提醒会从该时间起按周期计算，已过去的时间则从当前时间重新计算。</p>
+                    <p className="field-hint">
+                        留空时沿用任务已有的提醒或截止时间（日程表中新建的任务即为当天），都没有时取当前时间；已过去的时间会从当前时间重新计算。
+                    </p>
                 </div>
             )}
 

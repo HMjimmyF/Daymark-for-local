@@ -60,6 +60,18 @@ describe('recurring reminder form patterns', () => {
         expect(new Date(result).getTime()).toBe(localDate(2026, 11, 23).getTime())
     })
 
+    it('defaults the repeat start time to the calendar day for calendar created tasks', () => {
+        const now = new Date(2026, 10, 22, 10, 0, 0)
+        const form = applyRecurrenceFormPatch(
+            { recurrenceType: 'none', recurrenceInterval: 1, recurrenceUnit: 'day', recurrenceAnchorAt: '', dueAt: '2026-12-05T14:30', remindAt: '' },
+            { recurrenceType: 'daily' },
+            now
+        )
+
+        expect(form.recurrenceAnchorAt).toBe('2026-12-05T14:30')
+        expect(form.remindAt).toBe('2026-12-05T14:30')
+    })
+
     it('defaults the repeat start time to now when recurrence turns on', () => {
         const now = new Date(2026, 10, 22, 10, 0, 20)
         const form = applyRecurrenceFormPatch(
