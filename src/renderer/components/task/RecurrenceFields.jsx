@@ -73,6 +73,18 @@ export function RecurrenceFields({ idPrefix, value, onChange }) {
 
             {recurring && (
                 <div>
+                    <Label htmlFor={`${idPrefix}-recurrence-start`}>重复开始时间（可选）</Label>
+                    <DateTimePicker
+                        id={`${idPrefix}-recurrence-start`}
+                        value={value.recurrenceAnchorAt}
+                        onChange={(recurrenceAnchorAt) => onChange({ recurrenceAnchorAt })}
+                    />
+                    <p className="field-hint">默认从当前时间开始；选择更晚的时间后，首次提醒会从该时间起按周期计算，已过去的时间则从当前时间重新计算。</p>
+                </div>
+            )}
+
+            {recurring && (
+                <div>
                     <Label htmlFor={`${idPrefix}-recurrence-until`}>重复截止时间（可选）</Label>
                     <DateTimePicker
                         id={`${idPrefix}-recurrence-until`}

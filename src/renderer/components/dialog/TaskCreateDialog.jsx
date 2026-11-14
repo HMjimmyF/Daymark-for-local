@@ -8,7 +8,7 @@ import { DateTimePicker } from '@/components/ui/date-picker'
 import { PRIORITY_OPTIONS } from '@/components/common/view-config'
 import { RecurrenceFields } from '@/components/task/RecurrenceFields'
 import { ReminderFields } from '@/components/task/ReminderFields'
-import { buildRecurringReminderInput, fromDateTimeInput } from '@/lib/date'
+import { applyRecurrenceFormPatch, fromDateTimeInput } from '@/lib/date'
 import { api } from '@/services/daymark'
 import { useAppStore } from '@/stores/app-store'
 
@@ -20,6 +20,7 @@ const initialForm = {
     recurrenceType: 'none',
     recurrenceInterval: 1,
     recurrenceUnit: 'day',
+    recurrenceAnchorAt: '',
     recurrenceUntil: '',
     priority: 0,
     categoryId: ''
@@ -39,15 +40,7 @@ export function TaskCreateDialog({ open, categories, initialCategoryId, onClose,
     }, [open, initialCategoryId])
 
     const update = (key, value) => setForm((current) => ({ ...current, [key]: value }))
-    const updateRecurrence = (patch) =>
-        setForm((current) => {
-            const next = { ...current, ...patch }
-            const ruleShapeChanged = Object.hasOwn(patch, 'recurrenceType') || Object.hasOwn(patch, 'recurrenceUnit')
-            if (next.recurrenceType !== 'none' && (ruleShapeChanged || !next.remindAt)) {
-                next.remindAt = buildRecurringReminderInput(next)
-            }
-            return next
-        })
+    const updateRecurrence = (patch) => setForm((current) => applyRecurrenceFormPatch(current, patch))
 
     const submit = async (event) => {
         event.preventDefault()

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildRecurringReminderAt, buildRecurringReminderInput, formatRecurrence } from '../../src/renderer/lib/date'
+import { applyRecurrenceFormPatch, buildRecurringReminderAt, buildRecurringReminderInput, formatRecurrence } from '../../src/renderer/lib/date'
 
 function localDate(year, month, day, hour = 9) {
     return new Date(year, month - 1, day, hour, 0, 0)
@@ -40,6 +40,36 @@ describe('recurring reminder form patterns', () => {
         const value = buildRecurringReminderInput({ recurrenceType: 'daily' }, { reminderTime: '21:05' }, now)
 
         expect(value).toBe('2026-11-22T21:05')
+    })
+
+    it('starts the pattern from a future repeat start time', () => {
+        const now = new Date(2026, 10, 22, 10, 0, 0)
+        const daily = buildRecurringReminderAt({ recurrenceType: 'daily', recurrenceAnchorAt: '2026-12-01T09:00' }, {}, now)
+        const monthly = buildRecurringReminderAt({ recurrenceType: 'monthly', recurrenceAnchorAt: '2027-01-15T09:00' }, {}, now)
+        const weekly = buildRecurringReminderAt({ recurrenceType: 'weekly', recurrenceAnchorAt: '2026-12-01T09:00' }, { reminderWeekday: 3 }, now)
+
+        expect(new Date(daily).getTime()).toBe(localDate(2026, 12, 1).getTime())
+        expect(new Date(monthly).getTime()).toBe(localDate(2027, 1, 15).getTime())
+        expect(new Date(weekly).getTime()).toBe(localDate(2026, 12, 2).getTime())
+    })
+
+    it('keeps scheduling from now when the repeat start time already passed', () => {
+        const now = new Date(2026, 10, 22, 10, 0, 0)
+        const result = buildRecurringReminderAt({ recurrenceType: 'daily', recurrenceAnchorAt: '2026-11-01T09:00' }, {}, now)
+
+        expect(new Date(result).getTime()).toBe(localDate(2026, 11, 23).getTime())
+    })
+
+    it('defaults the repeat start time to now when recurrence turns on', () => {
+        const now = new Date(2026, 10, 22, 10, 0, 20)
+        const form = applyRecurrenceFormPatch(
+            { recurrenceType: 'none', recurrenceInterval: 1, recurrenceUnit: 'day', recurrenceAnchorAt: '' },
+            { recurrenceType: 'daily' },
+            now
+        )
+
+        expect(form.recurrenceAnchorAt).toBe('2026-11-22T10:00')
+        expect(form.remindAt).toBe('2026-11-23T09:00')
     })
 
     it('finds the next valid leap day for a yearly pattern', () => {

@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { PRIORITY_OPTIONS } from '@/components/common/view-config'
 import { RecurrenceFields } from '@/components/task/RecurrenceFields'
 import { ReminderFields } from '@/components/task/ReminderFields'
-import { buildRecurringReminderInput, formatRecurrence, formatShortDate, fromDateTimeInput, toDateTimeInput } from '@/lib/date'
+import { applyRecurrenceFormPatch, formatRecurrence, formatShortDate, fromDateTimeInput, toDateTimeInput } from '@/lib/date'
 import { api } from '@/services/daymark'
 import { useAppStore } from '@/stores/app-store'
 import { useTaskDetail } from '@/hooks/use-app-data'
@@ -24,6 +24,7 @@ function formFromTask(task) {
         recurrenceType: task.recurrenceType || 'none',
         recurrenceInterval: task.recurrenceInterval || 1,
         recurrenceUnit: task.recurrenceUnit || 'day',
+        recurrenceAnchorAt: toDateTimeInput(task.recurrenceAnchorAt),
         recurrenceUntil: toDateTimeInput(task.recurrenceUntil)
     }
 }
@@ -57,15 +58,7 @@ export function TaskDetailsDrawer({ taskId, categories, onCompleteTask, depth = 
     }, [task])
 
     const update = (key, value) => setForm((current) => ({ ...current, [key]: value }))
-    const updateRecurrence = (patch) =>
-        setForm((current) => {
-            const next = { ...current, ...patch }
-            const ruleShapeChanged = Object.hasOwn(patch, 'recurrenceType') || Object.hasOwn(patch, 'recurrenceUnit')
-            if (next.recurrenceType !== 'none' && (ruleShapeChanged || !next.remindAt)) {
-                next.remindAt = buildRecurringReminderInput(next)
-            }
-            return next
-        })
+    const updateRecurrence = (patch) => setForm((current) => applyRecurrenceFormPatch(current, patch))
 
     const dirty =
         Boolean(task) &&
@@ -79,6 +72,7 @@ export function TaskDetailsDrawer({ taskId, categories, onCompleteTask, depth = 
             form.recurrenceType !== (task.recurrenceType || 'none') ||
             Number(form.recurrenceInterval) !== (task.recurrenceInterval || 1) ||
             form.recurrenceUnit !== (task.recurrenceUnit || 'day') ||
+            (form.recurrenceAnchorAt || null) !== toDateTimeInput(task.recurrenceAnchorAt) ||
             (form.recurrenceUntil || null) !== toDateTimeInput(task.recurrenceUntil))
 
     const save = async () => {
