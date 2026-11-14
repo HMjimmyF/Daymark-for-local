@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Check, Plus, Trash2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogLayout } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,15 +10,66 @@ import { useAppStore } from '@/stores/app-store'
 export function CategoryManagerDialog({ open, categories, onClose, onChanged }) {
     const [name, setName] = useState('')
     const [edits, setEdits] = useState({})
+    const [editingId, setEditingId] = useState(null)
     const [busy, setBusy] = useState(false)
     const showToast = useAppStore((state) => state.showToast)
+    const activeView = useAppStore((state) => state.activeView)
+    const categoryId = useAppStore((state) => state.categoryId)
+    const navigate = useAppStore((state) => state.navigate)
+    const editsRef = useRef(edits)
+    const openedRef = useRef(false)
+    const nameInputRef = useRef(null)
 
     useEffect(() => {
-        if (open) {
-            setEdits(Object.fromEntries(categories.map((category) => [category.id, { name: category.name, color: category.color || CATEGORY_COLORS[0] }])))
-            setName('')
+        editsRef.current = edits
+    }, [edits])
+
+    useEffect(() => {
+        if (!open) {
+            openedRef.current = false
+            setEditingId(null)
+            return
         }
+        const justOpened = !openedRef.current
+        openedRef.current = true
+        setName('')
+        if (justOpened) {
+            setEditingId(null)
+        }
+        // 打开时重新同步，之后只补充新分类，避免刷新列表覆盖正在输入的草稿
+        setEdits((current) =>
+            Object.fromEntries(
+                categories.map((category) => [
+                    category.id,
+                    !justOpened && current[category.id] ? current[category.id] : { name: category.name, color: category.color || CATEGORY_COLORS[0] }
+                ])
+            )
+        )
     }, [open, categories])
+
+    useEffect(() => {
+        if (!editingId) {
+            return
+        }
+        const frame = window.requestAnimationFrame(() => {
+            nameInputRef.current?.focus()
+            nameInputRef.current?.select()
+        })
+        return () => window.cancelAnimationFrame(frame)
+    }, [editingId])
+
+    const updateEdit = (category, patch) => {
+        const current = editsRef.current
+        const next = {
+            ...current,
+            [category.id]: {
+                ...(current[category.id] || { name: category.name, color: category.color || CATEGORY_COLORS[0] }),
+                ...patch
+            }
+        }
+        editsRef.current = next
+        setEdits(next)
+    }
 
     const create = async (event) => {
         event.preventDefault()
@@ -38,18 +89,53 @@ export function CategoryManagerDialog({ open, categories, onClose, onChanged }) 
         }
     }
 
-    const save = async (category) => {
-        const next = edits[category.id]
-        if (!next?.name.trim()) {
+    const commit = async (category) => {
+        const next = editsRef.current[category.id]
+        if (!next) {
+            return
+        }
+        const originalColor = category.color || CATEGORY_COLORS[0]
+        const nextName = next.name.trim()
+        if (!nextName) {
+            updateEdit(category, { name: category.name })
             showToast('分类名称不能为空', 'error')
             return
         }
+        if (nextName === category.name && next.color === originalColor) {
+            return
+        }
         try {
-            await api.categories.update(category.id, { name: next.name, color: next.color })
+            await api.categories.update(category.id, { name: nextName, color: next.color })
+            updateEdit(category, { name: nextName })
             showToast('分类已更新')
             onChanged()
         } catch (error) {
             showToast(error.message, 'error')
+        }
+    }
+
+    const startEdit = (category) => {
+        updateEdit(category, { name: editsRef.current[category.id]?.name ?? category.name })
+        setEditingId(category.id)
+    }
+
+    const cancelEdit = (category) => {
+        updateEdit(category, { name: category.name })
+        setEditingId(null)
+    }
+
+    const finishEdit = (category) => {
+        setEditingId(null)
+        commit(category)
+    }
+
+    const handleNameKeyDown = (event, category) => {
+        if (event.key === 'Enter') {
+            event.preventDefault()
+            event.currentTarget.blur()
+        } else if (event.key === 'Escape') {
+            event.preventDefault()
+            cancelEdit(category)
         }
     }
 
@@ -60,6 +146,9 @@ export function CategoryManagerDialog({ open, categories, onClose, onChanged }) 
         try {
             const result = await api.categories.remove(category.id)
             showToast(`分类已删除，${result.movedTasks} 项任务已移入收集箱`)
+            if (activeView === 'category' && categoryId === category.id) {
+                navigate('inbox')
+            }
             onChanged()
         } catch (error) {
             showToast(error.message, 'error')
@@ -80,41 +169,52 @@ export function CategoryManagerDialog({ open, categories, onClose, onChanged }) 
                     <div className="category-list">
                         {categories.map((category) => {
                             const edit = edits[category.id] || { name: category.name, color: category.color || CATEGORY_COLORS[0] }
+                            const editing = editingId === category.id
                             return (
-                                <div className="category-editor" key={category.id}>
+                                <div className={`category-editor${editing ? ' editing' : ''}`} key={category.id}>
                                     <input
                                         type="color"
                                         className="color-swatch"
                                         value={edit.color}
                                         aria-label={`${category.name} 的颜色`}
-                                        onChange={(event) => setEdits((current) => ({ ...current, [category.id]: { ...edit, color: event.target.value } }))}
+                                        onChange={(event) => updateEdit(category, { color: event.target.value })}
+                                        onBlur={() => commit(category)}
                                     />
-                                    <input
-                                        className="mini-input"
-                                        value={edit.name}
-                                        maxLength={40}
-                                        aria-label={`${category.name} 的名称`}
-                                        onChange={(event) => setEdits((current) => ({ ...current, [category.id]: { ...edit, name: event.target.value } }))}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="icon-button"
-                                        style={{ width: 28, height: 28 }}
-                                        onClick={() => save(category)}
-                                        aria-label={`保存分类 ${category.name}`}
-                                        disabled={edit.name === category.name && edit.color === (category.color || CATEGORY_COLORS[0])}
-                                    >
-                                        <Check size={14} />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="icon-button"
-                                        style={{ width: 28, height: 28, color: 'hsl(var(--danger))' }}
-                                        onClick={() => remove(category)}
-                                        aria-label={`删除分类 ${category.name}`}
-                                    >
-                                        <Trash2 size={14} />
-                                    </button>
+                                    {editing ? (
+                                        <input
+                                            ref={nameInputRef}
+                                            className="mini-input"
+                                            value={edit.name}
+                                            maxLength={40}
+                                            aria-label={`${category.name} 的名称`}
+                                            onChange={(event) => updateEdit(category, { name: event.target.value })}
+                                            onBlur={() => finishEdit(category)}
+                                            onKeyDown={(event) => handleNameKeyDown(event, category)}
+                                        />
+                                    ) : (
+                                        <span className="category-name">{edit.name}</span>
+                                    )}
+                                    <div className="category-actions">
+                                        <button
+                                            type="button"
+                                            className="icon-button"
+                                            tabIndex={editing ? -1 : undefined}
+                                            onClick={() => startEdit(category)}
+                                            aria-label={`重命名分类 ${category.name}`}
+                                        >
+                                            <Pencil size={13} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="icon-button"
+                                            tabIndex={editing ? -1 : undefined}
+                                            style={{ color: 'hsl(var(--danger))' }}
+                                            onClick={() => remove(category)}
+                                            aria-label={`删除分类 ${category.name}`}
+                                        >
+                                            <Trash2 size={13} />
+                                        </button>
+                                    </div>
                                 </div>
                             )
                         })}

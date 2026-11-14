@@ -1,5 +1,8 @@
-import { CalendarDays, CalendarRange, CheckCircle2, Inbox, ListTodo, Plus, Settings } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { CalendarDays, CalendarRange, CheckCircle2, Inbox, ListTodo, MoreHorizontal, Pencil, Plus, Settings, SlidersHorizontal, Trash2 } from 'lucide-react'
 import brandIcon from '@brand/brand-icon.svg'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { api } from '@/services/daymark'
 import { useAppStore } from '@/stores/app-store'
 
 const primaryViews = [
@@ -53,22 +56,24 @@ export function Sidebar({ categories, counts }) {
                         className="icon-button"
                         style={{ width: 25, height: 25 }}
                         onClick={() => setCategoryManagerOpen(true)}
-                        aria-label="管理分类"
+                        aria-label={categories.length ? '管理分类' : '新建分类'}
                     >
-                        <Plus size={14} />
+                        {categories.length ? <SlidersHorizontal size={14} /> : <Plus size={14} />}
                     </button>
                 </div>
                 <div className="sidebar-scroll">
                     {categories.map((category) => (
-                        <button
-                            type="button"
+                        <CategoryNavItem
                             key={category.id}
-                            className={`nav-item ${activeView === 'category' && categoryId === category.id ? 'active' : ''}`}
-                            onClick={() => navigate('category', category.id)}
-                        >
-                            <span className="category-dot" style={{ background: category.color || 'hsl(var(--primary))' }} />
-                            <span className="nav-label">{category.name}</span>
-                        </button>
+                            category={category}
+                            active={activeView === 'category' && categoryId === category.id}
+                            onNavigate={() => navigate('category', category.id)}
+                            onRemoved={() => {
+                                if (activeView === 'category' && categoryId === category.id) {
+                                    navigate('inbox')
+                                }
+                            }}
+                        />
                     ))}
                     {!categories.length && (
                         <button type="button" className="nav-item" onClick={() => setCategoryManagerOpen(true)}>
@@ -86,5 +91,138 @@ export function Sidebar({ categories, counts }) {
                 </button>
             </div>
         </aside>
+    )
+}
+
+function CategoryNavItem({ category, active, onNavigate, onRemoved }) {
+    const showToast = useAppStore((state) => state.showToast)
+    const [editing, setEditing] = useState(false)
+    const [draft, setDraft] = useState(category.name)
+    const inputRef = useRef(null)
+    const cancelRef = useRef(false)
+    const holdFocusRef = useRef(false)
+
+    useEffect(() => {
+        if (!editing) {
+            setDraft(category.name)
+            return
+        }
+        // 等下拉菜单关闭并归还焦点后再聚焦输入框
+        const frame = window.requestAnimationFrame(() => {
+            inputRef.current?.focus()
+            inputRef.current?.select()
+        })
+        return () => window.cancelAnimationFrame(frame)
+    }, [editing, category.name])
+
+    const startRename = () => {
+        cancelRef.current = false
+        holdFocusRef.current = true
+        setDraft(category.name)
+        setEditing(true)
+    }
+
+    const handleMenuCloseAutoFocus = (event) => {
+        // 进入重命名时由输入框接管焦点，避免菜单关闭后把焦点还给已移除的按钮
+        if (holdFocusRef.current) {
+            holdFocusRef.current = false
+            event.preventDefault()
+        }
+    }
+
+    const commitRename = async () => {
+        setEditing(false)
+        const nextName = draft.trim()
+        if (!nextName) {
+            showToast('分类名称不能为空', 'error')
+            return
+        }
+        if (nextName === category.name) {
+            return
+        }
+        try {
+            await api.categories.update(category.id, { name: nextName, color: category.color })
+            showToast('分类已重命名')
+        } catch (error) {
+            showToast(error.message, 'error')
+        }
+    }
+
+    const handleBlur = () => {
+        if (cancelRef.current) {
+            cancelRef.current = false
+            setEditing(false)
+            return
+        }
+        commitRename()
+    }
+
+    const handleKeyDown = (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault()
+            event.currentTarget.blur()
+        } else if (event.key === 'Escape') {
+            event.preventDefault()
+            cancelRef.current = true
+            event.currentTarget.blur()
+        }
+    }
+
+    const removeCategory = async () => {
+        if (!window.confirm(`删除“${category.name}”分类？分类中的任务会保留，并移入收集箱。`)) {
+            return
+        }
+        try {
+            const result = await api.categories.remove(category.id)
+            showToast(`分类已删除，${result.movedTasks} 项任务已移入收集箱`)
+            onRemoved()
+        } catch (error) {
+            showToast(error.message, 'error')
+        }
+    }
+
+    if (editing) {
+        return (
+            <div className={`nav-item category-item editing ${active ? 'active' : ''}`}>
+                <span className="category-dot" style={{ background: category.color || 'hsl(var(--primary))' }} />
+                <input
+                    ref={inputRef}
+                    className="category-rename-input"
+                    value={draft}
+                    maxLength={40}
+                    aria-label={`重命名分类 ${category.name}`}
+                    onChange={(event) => setDraft(event.target.value)}
+                    onBlur={handleBlur}
+                    onKeyDown={handleKeyDown}
+                />
+            </div>
+        )
+    }
+
+    return (
+        <div className={`nav-item category-item ${active ? 'active' : ''}`}>
+            <button type="button" className="category-link" onClick={onNavigate} aria-current={active ? 'page' : undefined}>
+                <span className="category-dot" style={{ background: category.color || 'hsl(var(--primary))' }} />
+                <span className="nav-label">{category.name}</span>
+            </button>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <button type="button" className="icon-button category-more" aria-label={`${category.name} 的更多操作`}>
+                        <MoreHorizontal size={15} />
+                    </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" onCloseAutoFocus={handleMenuCloseAutoFocus}>
+                    <DropdownMenuItem onSelect={startRename}>
+                        <Pencil size={14} />
+                        重命名
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="danger" onSelect={removeCategory}>
+                        <Trash2 size={14} />
+                        删除分类
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
     )
 }
