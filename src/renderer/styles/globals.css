@@ -1486,6 +1486,21 @@ button,
     background: hsl(var(--card));
 }
 
+.icon-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.refresh-button.refreshing svg {
+    animation: refresh-spin 800ms linear infinite;
+}
+
+@keyframes refresh-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .menu-content {
     z-index: 70;
     min-width: 165px;

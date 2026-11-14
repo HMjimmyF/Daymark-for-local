@@ -178,7 +178,7 @@ export function App() {
                 <Sidebar categories={appData.categories} counts={appData.counts} />
                 <section className={`workspace ${showDetails ? 'details-open' : ''}`}>
                     <WindowTitlebar />
-                    <Topbar category={selectedCategory} />
+                    <Topbar category={selectedCategory} onRefresh={appData.reloadAll} />
                     {appData.error && (
                         <div className="error-banner" role="alert">
                             <AlertTriangle size={14} />
